@@ -1,0 +1,88 @@
+# ANOVA METHODS
+
+**We are building free, open packages that help psychological professionals —
+researchers, students, and practitioners — analyze and report data for the most
+common tasks in psychology and applied statistics for psychology.**
+
+Everything here is public and free (MIT licensed). The goal is a solid, tested
+toolkit that takes you from a `DataFrame` to publication-ready, APA-style output
+without leaving Python.
+
+Maintainer: Luis Anunciação, PhD — Pontifical Catholic University of Rio de
+Janeiro (PUC-Rio) & University of Oregon.
+ORCID [0000-0001-5303-5782](https://orcid.org/0000-0001-5303-5782) ·
+Lab [labmm.org](https://labmm.org/)
+
+## The three packages
+
+| Package | Scope | R analogues |
+|---|---|---|
+| `psystats` | descriptive tables (M, SD, proportions), risk factors (attributable risk, relative risk, odds ratio), and regression models | arsenal, tableone, epitools |
+| `psymetrics` | Cronbach's alpha, exploratory and confirmatory factor analysis (estimators and rotations), SEM | psych, lavaan, mirt |
+| `psyreport` | tables and text in the APA-style ecosystem | apaTables, report |
+
+The API is deliberately R-like and functional, so users coming from R read it at
+a glance. A real teaching dataset ships with `psystats` (depression and anxiety
+in 1,957 students from Spain, Portugal, and Brazil; Afonso Junior et al., 2020):
+
+```python
+from psystats import load_mapfre, table1
+from psymetrics import alpha
+from psyreport import report
+
+df = load_mapfre()
+bdi = df[[f"bdi_{i}" for i in range(1, 22)]].dropna()
+
+a = alpha(bdi)                # like psych::alpha
+print(report(a))             # "Cronbach's α = .90, 95% CI [.89, .90] ..."
+
+print(table1(df, group="country"))   # auto test selection per variable
+```
+
+Every result object prints an R-style summary and can be passed to
+`psyreport.report()` for APA-7 output.
+
+## Scope and roadmap
+
+**psystats** — descriptives, frequencies, correlation matrices, and Table 1
+with automatic test selection *(done)*; t-test, one-way ANOVA, and chi-square
+with effect sizes (Cohen's d, η², Cramér's V) *(done)*; risk factors: relative
+risk, odds ratio, attributable risk (risk difference, ARP, PAR, NNT) *(done)*;
+linear and logistic regression with standardized betas / odds ratios *(done)*.
+
+**psymetrics** — reliability: Cronbach's alpha *(done)*; factorability (KMO,
+Bartlett) *(done)*; exploratory factor analysis with selectable estimators and
+rotations *(done)*; confirmatory factor analysis and SEM with lavaan-style
+syntax *(done)*.
+
+**psyreport** — APA-7 text for every result the siblings emit *(done)*; LaTeX
+and Word (`.docx`) table export *(done)*.
+
+Correctness is validated in CI against R / established gold-standard output.
+
+## Install
+
+```bash
+pip install psystats psymetrics psyreport
+```
+
+Confirmatory factor analysis (`psymetrics.cfa`) uses `semopy`, kept as an
+optional extra so the core installs cleanly everywhere:
+
+```bash
+pip install "psymetrics[sem]"
+```
+
+## Development
+
+Each package under `packages/` is built and published to PyPI independently.
+
+```bash
+pip install -e packages/psystats -e packages/psymetrics -e packages/psyreport
+pytest packages/
+```
+
+See `PUBLISHING.md` for the (approval-free) PyPI release steps and `CHANGELOG.md`
+for what's in each version.
+
+License: MIT

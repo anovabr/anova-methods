@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "psystats"
+version = "0.1.1"
+description = "Basic statistics and biostatistics for psychologists with an R-like API"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Luis Anunciacao", email = "luisfca@gmail.com" }]
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "pandas>=2.0", "scipy>=1.10", "statsmodels>=0.14"]
+keywords = ["statistics", "psychology", "biostatistics", "table1", "risk ratio", "regression"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/anovabr/anova-methods"
+Source = "https://github.com/anovabr/anova-methods"
+Lab = "https://labmm.org/"
+ORCID = "https://orcid.org/0000-0001-5303-5782"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/psystats"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/psystats/data/mapfre.csv" = "psystats/data/mapfre.csv"

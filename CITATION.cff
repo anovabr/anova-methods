@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use ANOVA Methods (psystats, psymetrics, psyreport), please cite it as below."
+title: "ANOVA Methods: psystats, psymetrics, and psyreport"
+authors:
+  - family-names: "Anunciação"
+    given-names: "Luis"
+    orcid: "https://orcid.org/0000-0001-5303-5782"
+    affiliation: "Pontifical Catholic University of Rio de Janeiro (PUC-Rio); University of Oregon"
+version: 0.1.0
+date-released: "2026-07-18"
+license: MIT
+repository-code: "https://github.com/anovabr/anova-methods"
+keywords:
+  - psychology
+  - statistics
+  - biostatistics
+  - psychometrics
+  - factor analysis
+  - APA reporting
