@@ -1,15 +1,23 @@
 cff-version: 1.2.0
 message: "If you use ANOVA Methods (psystats, psymetrics, psyreport), please cite it as below."
 title: "ANOVA Methods: psystats, psymetrics, and psyreport"
+abstract: >-
+  A family of three free and open Python packages for quantitative psychology:
+  psystats (descriptives, group comparison tables, inferential tests with effect
+  sizes, regression, risk measures), psymetrics (reliability, factorability,
+  exploratory and confirmatory factor analysis, SEM), and psyreport (APA 7 text,
+  LaTeX and Word table export).
+type: software
 authors:
   - family-names: "Anunciação"
     given-names: "Luis"
     orcid: "https://orcid.org/0000-0001-5303-5782"
     affiliation: "Pontifical Catholic University of Rio de Janeiro (PUC-Rio); University of Oregon"
-version: 0.1.0
-date-released: "2026-07-18"
+version: 0.1.1
+date-released: "2026-07-25"
 license: MIT
 repository-code: "https://github.com/anovabr/anova-methods"
+url: "https://github.com/anovabr/anova-methods"
 keywords:
   - psychology
   - statistics
@@ -17,3 +25,12 @@ keywords:
   - psychometrics
   - factor analysis
   - APA reporting
+
+# After the first GitHub release, Zenodo mints a DOI for this repository.
+# Uncomment the block below and paste the *concept* DOI, which always resolves
+# to the newest version, so that citations do not go stale between releases.
+#
+# identifiers:
+#   - type: doi
+#     value: "10.5281/zenodo.XXXXXXX"
+#     description: "Concept DOI resolving to the latest release"

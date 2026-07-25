@@ -39,14 +39,55 @@ three packages and uploads them automatically — no token, no local `twine`.
 
 ## 4. DOI for citations (Zenodo)
 
-Enable the Zenodo–GitHub integration for this repo, then publish a GitHub
-release. Zenodo mints a DOI and archives the release, giving you a citable
-software DOI. Add that DOI to `CITATION.cff` and the README badge.
+This mints a real, citable DOI and needs no peer review. Do it before the JOSS
+submission, because JOSS asks for an archived release.
+
+1. Sign in at https://zenodo.org with the GitHub account that owns the repo.
+2. Go to https://zenodo.org/account/settings/github/ and switch this repository
+   **on**. Zenodo only archives releases created *after* the switch is flipped,
+   so do this first.
+3. Publish a GitHub release (step 3 above). Zenodo archives the tarball and
+   mints the DOI within a few minutes.
+4. Zenodo issues two DOIs. The **concept DOI** always resolves to the newest
+   version and is the one to cite; each release also gets its own version DOI.
+5. Paste the concept DOI into `CITATION.cff` (an `identifiers:` block is
+   prepared there, commented out) and add the badge to `README.md`:
+
+   ```markdown
+   [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+   ```
+
+`.zenodo.json` in the repository root supplies the record's title, description,
+authors, ORCID, keywords, and licence, so the Zenodo entry is populated rather
+than inheriting bare defaults. Check the draft record once before publishing;
+Zenodo has changed its metadata schema over time, and the `license` field is the
+one most likely to need adjusting in the web form.
 
 ## 5. JOSS submission
 
-`packages/psystats/paper/paper.md` is a JOSS draft. Before submitting, note that
-JOSS expects software of substantial scholarly effort; consider growing the API
-surface and, if reviewers prefer, submitting one paper covering the whole ANOVA
-Methods ecosystem rather than one per package. Submit at https://joss.theoj.org
-with the repository URL once a release and DOI exist.
+`paper/paper.md` is the JOSS manuscript. It covers all three packages as one
+ecosystem, which is the stronger submission: JOSS expects software representing
+substantial scholarly effort and uses roughly a thousand lines of code as a
+rule of thumb, and no single package here clears that bar alone.
+
+Before submitting, confirm the checklist JOSS reviewers work through:
+
+- [x] OSI approved licence (MIT)
+- [x] Public repository with version control
+- [x] Automated tests (`pytest packages/`)
+- [x] Community guidelines (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`)
+- [x] Statement of need in the paper
+- [x] Documented API with runnable examples
+- [ ] An archived release with a DOI (step 4)
+
+Submit at https://joss.theoj.org with the repository URL and the archive DOI.
+JOSS builds its own branded PDF from `paper.md` and `paper.bib` using the
+`openjournals/inara` container, so the locally built `paper/paper.pdf` is for
+preview and circulation rather than for submission.
+
+To rebuild the local preview:
+
+```bash
+pip install pypandoc_binary weasyprint pyyaml
+python paper/build_paper.py
+```

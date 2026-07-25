@@ -1,0 +1,37 @@
+{
+  "title": "ANOVA Methods: statistics, psychometrics, and APA reporting for psychology in Python",
+  "description": "<p>ANOVA Methods is a family of three free and open Python packages for quantitative psychology. <strong>psystats</strong> provides descriptive statistics, group comparison tables with automatic test selection, inferential tests with effect sizes, linear and logistic regression, and epidemiological risk measures. <strong>psymetrics</strong> provides reliability analysis, factorability checks, exploratory factor analysis, and confirmatory factor analysis with structural equation models. <strong>psyreport</strong> renders results from the other two as APA 7 text, LaTeX tables, and Word documents. A documented teaching dataset of 1,957 undergraduate students ships with psystats.</p>",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "creators": [
+    {
+      "name": "Anunciação, Luis",
+      "orcid": "0000-0001-5303-5782",
+      "affiliation": "Pontifical Catholic University of Rio de Janeiro (PUC-Rio); University of Oregon"
+    }
+  ],
+  "keywords": [
+    "psychology",
+    "statistics",
+    "biostatistics",
+    "psychometrics",
+    "factor analysis",
+    "structural equation modeling",
+    "reliability",
+    "APA reporting",
+    "Python"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/anovabr/anova-methods",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://pypi.org/project/psystats/",
+      "relation": "isIdenticalTo",
+      "scheme": "url"
+    }
+  ]
+}

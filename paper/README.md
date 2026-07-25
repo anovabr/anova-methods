@@ -1,4 +1,4 @@
-# The `psystats` paper
+# The ANOVA Methods paper
 
 | File | Purpose |
 |---|---|
@@ -15,7 +15,7 @@ with `--citeproc`), and WeasyPrint prints the styled HTML to PDF.
 
 ```bash
 pip install pypandoc_binary weasyprint pyyaml
-python packages/psystats/paper/build_paper.py
+python paper/build_paper.py
 ```
 
 WeasyPrint cannot render MathML, so inline math is mapped to Unicode

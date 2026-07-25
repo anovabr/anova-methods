@@ -5,7 +5,7 @@ it in a journal-style template, and prints it to PDF with WeasyPrint. No LaTeX
 required.
 
     pip install pypandoc_binary weasyprint pyyaml
-    python packages/psystats/paper/build_paper.py
+    python paper/build_paper.py
 
 Output: paper.pdf next to this script.
 """
@@ -38,7 +38,7 @@ MATH = {
 CSS = """
 @page {
     size: A4;
-    margin: 22mm 20mm 20mm 20mm;
+    margin: 20mm 20mm 17mm 20mm;
     @bottom-center {
         content: counter(page);
         font-family: "DejaVu Sans", sans-serif;
@@ -117,9 +117,9 @@ pre code { background: none; padding: 0; }
 a { color: #14507d; text-decoration: none; }
 
 /* Reference list: hanging indent, APA style */
-#refs { font-size: 9.2pt; text-align: left; }
+#refs { font-size: 9pt; text-align: left; }
 #refs div.csl-entry {
-    margin-bottom: 0.4em;
+    margin-bottom: 0.3em;
     padding-left: 5mm;
     text-indent: -5mm;
 }
