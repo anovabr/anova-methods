@@ -5,13 +5,12 @@ name: Build and deploy documentation site
 # stamp on the page honest, and keeps the function reference in step with the
 # code it is generated from.
 
+# Every push to main rebuilds, with no path filter. The page states when it was
+# last built, and a filter would let that date fall behind the repository on any
+# push it did not match. A build takes about a minute.
 on:
   push:
     branches: [main]
-    paths:
-      - "packages/**"
-      - "docs/build_site.py"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
