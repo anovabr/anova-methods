@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img alt="ANOVA Methods" src="docs/assets/logo-light.svg" width="150">
+  </picture>
+</p>
+
 # ANOVA METHODS
 
 [![Tests](https://github.com/anovabr/anova-methods/actions/workflows/ci.yml/badge.svg)](https://github.com/anovabr/anova-methods/actions/workflows/ci.yml)

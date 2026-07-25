@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1140" role="img" aria-label="ANOVA Methods">
+  <title>ANOVA Methods</title>
+  <g fill="none">
+    <path d="M690 62 L232 1012" stroke="#E8B33C" stroke-width="170"/>
+    <path d="M690 62 L1148 1012" stroke="#E8B33C" stroke-width="170"/>
+    <path d="M132 898 L1264 442" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/>
+  </g>
+  <g fill="#FFFFFF">
+    <circle cx="1085" cy="405" r="38"/>
+    <circle cx="745"  cy="558" r="38"/>
+    <circle cx="563"  cy="655" r="38"/>
+    <circle cx="830"  cy="710" r="38"/>
+    <circle cx="658"  cy="762" r="38"/>
+    <circle cx="478"  cy="842" r="38"/>
+  </g>
+</svg>
