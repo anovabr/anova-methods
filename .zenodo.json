@@ -29,8 +29,8 @@
       "scheme": "url"
     },
     {
-      "identifier": "https://pypi.org/project/psystats/",
-      "relation": "isIdenticalTo",
+      "identifier": "https://anovabr.github.io/anova-methods/",
+      "relation": "isDocumentedBy",
       "scheme": "url"
     }
   ]

@@ -26,11 +26,12 @@ keywords:
   - factor analysis
   - APA reporting
 
-# After the first GitHub release, Zenodo mints a DOI for this repository.
-# Uncomment the block below and paste the *concept* DOI, which always resolves
-# to the newest version, so that citations do not go stale between releases.
-#
-# identifiers:
-#   - type: doi
-#     value: "10.5281/zenodo.XXXXXXX"
-#     description: "Concept DOI resolving to the latest release"
+identifiers:
+  # Cite the concept DOI: it always resolves to the newest archived release,
+  # so a citation does not go stale when a new version is published.
+  - type: doi
+    value: "10.5281/zenodo.21566785"
+    description: "Concept DOI resolving to the latest release"
+  - type: doi
+    value: "10.5281/zenodo.21566786"
+    description: "Version DOI for the archived release v0.1.2"

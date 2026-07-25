@@ -31,6 +31,14 @@ OUT = HERE / "index.html"
 README = HERE.parent / "README.md"
 SITE_URL = "https://anovabr.github.io/anova-methods/"
 
+# Zenodo mints two DOIs. The concept DOI always resolves to the newest release
+# and is the one to cite, so that a citation does not go stale when a new
+# version is archived. The version DOI is pinned to one release and is recorded
+# in CITATION.cff alongside it.
+DOI = "10.5281/zenodo.21566785"          # concept: always the latest release
+VERSION_DOI = "10.5281/zenodo.21566786"  # pinned: v0.1.2
+DOI_URL = f"https://doi.org/{DOI}"
+
 BUILT = dt.datetime.now(dt.timezone.utc)
 BUILT_HUMAN = BUILT.strftime("%d %B %Y")
 BUILT_ISO = BUILT.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -817,6 +825,7 @@ def build_readme(resolved: dict) -> str:
 [![PyPI](https://img.shields.io/pypi/v/psymetrics?label=psymetrics)](https://pypi.org/project/psymetrics/)
 [![PyPI](https://img.shields.io/pypi/v/psyreport?label=psyreport)](https://pypi.org/project/psyreport/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/{DOI}.svg)]({DOI_URL})
 
 Three packages covering the statistical analyses commonly reported in
 psychology: descriptive and group comparison tables, inferential tests with
@@ -963,20 +972,28 @@ pytest packages/
 Citation metadata is held in [`CITATION.cff`](CITATION.cff), which GitHub
 renders as a **Cite this repository** button in the sidebar, giving APA and
 BibTeX entries directly. Releases are archived on Zenodo, which mints a
-permanent DOI for each version.
+permanent DOI for each version, so a citation points at an immutable archive
+rather than a moving branch.
 
-> Anunciação, L. (2026). *ANOVA Methods: psystats, psymetrics, and psyreport*
-> (Version 0.1.2) [Computer software]. https://github.com/anovabr/anova-methods
+> Anunciação, L. (2026). *ANOVA Methods: statistics, psychometrics, and APA
+> reporting for psychology in Python* [Computer software]. Zenodo. {DOI_URL}
 
 ```bibtex
 @software{{anunciacao_anova_methods,
-  author  = {{Anunciação, Luis}},
-  title   = {{ANOVA Methods: psystats, psymetrics, and psyreport}},
-  year    = {{2026}},
-  version = {{0.1.2}},
-  url     = {{https://github.com/anovabr/anova-methods}}
+  author    = {{Anunciação, Luis}},
+  title     = {{ANOVA Methods: statistics, psychometrics, and APA reporting
+               for psychology in Python}},
+  year      = {{2026}},
+  publisher = {{Zenodo}},
+  doi       = {{{DOI}}},
+  url       = {{{DOI_URL}}}
 }}
 ```
+
+The DOI above is the **concept DOI**: it always resolves to the most recent
+release, so a citation does not go stale when a new version is archived. To
+cite one specific version instead, use its own DOI, which for v0.1.2 is
+[{VERSION_DOI}](https://doi.org/{VERSION_DOI}).
 
 The bundled dataset has its own citation, which applies when it is used in a
 publication.
@@ -1231,12 +1248,14 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)''', "R
       <p>
         Citation metadata is held in <code>CITATION.cff</code>, which GitHub renders as
         a <em>Cite this repository</em> button in the repository sidebar, giving APA and
-        BibTeX entries directly. Releases are archived on Zenodo, which mints a
-        permanent DOI for each version.
+        BibTeX entries directly. Releases are archived on
+        <a href="{DOI_URL}">Zenodo</a>, which mints a permanent DOI, so a citation
+        points at an immutable archive rather than a moving branch. The DOI below
+        is the concept DOI: it always resolves to the most recent release.
       </p>
-      {code_block('''Anunciação, L. (2026). ANOVA Methods: psystats, psymetrics, and
-psyreport (Version 0.1.2) [Computer software].
-https://github.com/anovabr/anova-methods''', "APA", copy=False)}
+      {code_block(f'''Anunciação, L. (2026). ANOVA Methods: statistics, psychometrics,
+and APA reporting for psychology in Python [Computer software].
+Zenodo. {DOI_URL}''', "APA", copy=False)}
       <p>
         The bundled dataset has its own citation, which applies when it is used in a
         publication.

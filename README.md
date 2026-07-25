@@ -5,6 +5,7 @@
 [![PyPI](https://img.shields.io/pypi/v/psymetrics?label=psymetrics)](https://pypi.org/project/psymetrics/)
 [![PyPI](https://img.shields.io/pypi/v/psyreport?label=psyreport)](https://pypi.org/project/psyreport/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21566785.svg)](https://doi.org/10.5281/zenodo.21566785)
 
 Three packages covering the statistical analyses commonly reported in
 psychology: descriptive and group comparison tables, inferential tests with
@@ -530,20 +531,28 @@ pytest packages/
 Citation metadata is held in [`CITATION.cff`](CITATION.cff), which GitHub
 renders as a **Cite this repository** button in the sidebar, giving APA and
 BibTeX entries directly. Releases are archived on Zenodo, which mints a
-permanent DOI for each version.
+permanent DOI for each version, so a citation points at an immutable archive
+rather than a moving branch.
 
-> Anunciação, L. (2026). *ANOVA Methods: psystats, psymetrics, and psyreport*
-> (Version 0.1.2) [Computer software]. https://github.com/anovabr/anova-methods
+> Anunciação, L. (2026). *ANOVA Methods: statistics, psychometrics, and APA
+> reporting for psychology in Python* [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.21566785
 
 ```bibtex
 @software{anunciacao_anova_methods,
-  author  = {Anunciação, Luis},
-  title   = {ANOVA Methods: psystats, psymetrics, and psyreport},
-  year    = {2026},
-  version = {0.1.2},
-  url     = {https://github.com/anovabr/anova-methods}
+  author    = {Anunciação, Luis},
+  title     = {ANOVA Methods: statistics, psychometrics, and APA reporting
+               for psychology in Python},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.21566785},
+  url       = {https://doi.org/10.5281/zenodo.21566785}
 }
 ```
+
+The DOI above is the **concept DOI**: it always resolves to the most recent
+release, so a citation does not go stale when a new version is archived. To
+cite one specific version instead, use its own DOI, which for v0.1.2 is
+[10.5281/zenodo.21566786](https://doi.org/10.5281/zenodo.21566786).
 
 The bundled dataset has its own citation, which applies when it is used in a
 publication.
