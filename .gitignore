@@ -1,0 +1,22 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Packaging / editable installs
+build/
+*.egg-info/
+*.egg-link
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/
