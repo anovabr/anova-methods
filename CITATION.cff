@@ -13,7 +13,7 @@ authors:
     given-names: "Luis"
     orcid: "https://orcid.org/0000-0001-5303-5782"
     affiliation: "Pontifical Catholic University of Rio de Janeiro (PUC-Rio); University of Oregon"
-version: 0.1.2
+version: 0.1.3
 date-released: "2026-07-25"
 license: MIT
 repository-code: "https://github.com/anovabr/anova-methods"
@@ -27,11 +27,10 @@ keywords:
   - APA reporting
 
 identifiers:
-  # Cite the concept DOI: it always resolves to the newest archived release,
-  # so a citation does not go stale when a new version is published.
+  # The concept DOI always resolves to the newest archived release, so it does
+  # not need updating when a version is published. Each release also gets its
+  # own version DOI, shown on that release's record on Zenodo; those are
+  # deliberately not listed here, so that this file cannot fall behind.
   - type: doi
     value: "10.5281/zenodo.21566785"
     description: "Concept DOI resolving to the latest release"
-  - type: doi
-    value: "10.5281/zenodo.21566786"
-    description: "Version DOI for the archived release v0.1.2"

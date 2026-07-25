@@ -31,12 +31,10 @@ OUT = HERE / "index.html"
 README = HERE.parent / "README.md"
 SITE_URL = "https://anovabr.github.io/anova-methods/"
 
-# Zenodo mints two DOIs. The concept DOI always resolves to the newest release
-# and is the one to cite, so that a citation does not go stale when a new
-# version is archived. The version DOI is pinned to one release and is recorded
-# in CITATION.cff alongside it.
-DOI = "10.5281/zenodo.21566785"          # concept: always the latest release
-VERSION_DOI = "10.5281/zenodo.21566786"  # pinned: v0.1.2
+# Zenodo mints a version DOI for each release and one concept DOI for the
+# record as a whole. Only the concept DOI is used here: it always resolves to
+# the newest release, so nothing needs updating when a version is published.
+DOI = "10.5281/zenodo.21566785"
 DOI_URL = f"https://doi.org/{DOI}"
 
 BUILT = dt.datetime.now(dt.timezone.utc)
@@ -992,8 +990,8 @@ rather than a moving branch.
 
 The DOI above is the **concept DOI**: it always resolves to the most recent
 release, so a citation does not go stale when a new version is archived. To
-cite one specific version instead, use its own DOI, which for v0.1.2 is
-[{VERSION_DOI}](https://doi.org/{VERSION_DOI}).
+cite one specific version instead, use that release's own version DOI, shown
+on its record on [Zenodo]({DOI_URL}).
 
 The bundled dataset has its own citation, which applies when it is used in a
 publication.

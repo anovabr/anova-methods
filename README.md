@@ -551,8 +551,8 @@ rather than a moving branch.
 
 The DOI above is the **concept DOI**: it always resolves to the most recent
 release, so a citation does not go stale when a new version is archived. To
-cite one specific version instead, use its own DOI, which for v0.1.2 is
-[10.5281/zenodo.21566786](https://doi.org/10.5281/zenodo.21566786).
+cite one specific version instead, use that release's own version DOI, shown
+on its record on [Zenodo](https://doi.org/10.5281/zenodo.21566785).
 
 The bundled dataset has its own citation, which applies when it is used in a
 publication.
