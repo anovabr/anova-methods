@@ -28,6 +28,8 @@ import psystats
 
 HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "index.html"
+README = HERE.parent / "README.md"
+SITE_URL = "https://anovabr.github.io/anova-methods/"
 
 BUILT = dt.datetime.now(dt.timezone.utc)
 BUILT_HUMAN = BUILT.strftime("%d %B %Y")
@@ -231,26 +233,51 @@ def function_card(mod, name: str) -> str:
 </details>"""
 
 
-CSS = """
-:root {
-  --paper:#F4F6F3; --surface:#FFFFFF; --surface-2:#ECEFEA;
-  --ink:#0F1417; --ink-soft:#3A443F; --muted:#63706A; --rule:#D6DCD6;
-  --accent:#17594A; --accent-ink:#FFFFFF; --accent-dim:#DCE9E3;
-  --signal:#B5462F; --code-bg:#EDF0EC;
+# The two palettes are written once and emitted into three places: the default
+# :root, the prefers-color-scheme media query, and the explicit data-theme
+# overrides the toggle sets. Keeping one source stops the themes drifting.
+LIGHT_TOKENS = {
+    "--paper": "#F4F6F3", "--surface": "#FFFFFF", "--surface-2": "#ECEFEA",
+    "--ink": "#0F1417", "--ink-soft": "#3A443F", "--muted": "#63706A",
+    "--rule": "#D6DCD6", "--accent": "#17594A", "--accent-ink": "#FFFFFF",
+    "--accent-dim": "#DCE9E3", "--signal": "#B5462F", "--code-bg": "#EDF0EC",
+    "--shadow": "0 2px 10px rgba(15,20,23,0.10)",
+}
+DARK_TOKENS = {
+    "--paper": "#0D1114", "--surface": "#141A1D", "--surface-2": "#1B2226",
+    "--ink": "#E8EDE9", "--ink-soft": "#BFC9C3", "--muted": "#8A9791",
+    "--rule": "#2A3431", "--accent": "#2E9C7E", "--accent-ink": "#06120E",
+    "--accent-dim": "#16332B", "--signal": "#E0785C", "--code-bg": "#101619",
+    "--shadow": "0 2px 10px rgba(0,0,0,0.45)",
+}
+
+
+def _tokens(d: dict) -> str:
+    return "\n".join(f"  {k}: {v};" for k, v in d.items())
+
+
+CSS = f"""
+:root {{
+{_tokens(LIGHT_TOKENS)}
   --display:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
   --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   --step--1:0.815rem; --step-0:1rem; --step-1:1.2rem;
   --step-2:1.5rem; --step-3:1.95rem; --step-5:3.4rem;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper:#0D1114; --surface:#141A1D; --surface-2:#1B2226;
-    --ink:#E8EDE9; --ink-soft:#BFC9C3; --muted:#8A9791; --rule:#2A3431;
-    --accent:#2E9C7E; --accent-ink:#06120E; --accent-dim:#16332B;
-    --signal:#E0785C; --code-bg:#101619;
-  }
-}
+}}
+@media (prefers-color-scheme: dark) {{
+  :root {{
+{_tokens(DARK_TOKENS)}
+  }}
+}}
+/* An explicit choice from the toggle wins over the system preference. */
+:root[data-theme="dark"] {{
+{_tokens(DARK_TOKENS)}
+}}
+:root[data-theme="light"] {{
+{_tokens(LIGHT_TOKENS)}
+}}
+""" + """
 * { box-sizing:border-box; }
 body {
   margin:0; background:var(--paper); color:var(--ink);
@@ -429,7 +456,40 @@ footer {
   padding-top:1.5rem; color:var(--muted); font-size:0.85rem;
 }
 footer p { max-width:70ch; }
-@media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }
+
+/* ---- theme toggle --------------------------------------------------- */
+.theme-toggle {
+  font-family:var(--body); font-size:0.74rem; letter-spacing:0.04em;
+  background:var(--surface); border:1px solid var(--rule); color:var(--ink-soft);
+  border-radius:2px; padding:0.2rem 0.6rem; cursor:pointer;
+  display:inline-flex; align-items:center; gap:0.4rem;
+}
+.theme-toggle:hover { color:var(--accent); border-color:var(--accent); }
+.theme-toggle:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.theme-toggle .icon { font-size:0.9rem; line-height:1; }
+
+/* ---- back to top ---------------------------------------------------- */
+#to-top {
+  position:fixed; right:1.25rem; bottom:1.25rem; z-index:50;
+  display:inline-flex; align-items:center; gap:0.4rem;
+  font-family:var(--body); font-size:0.78rem; letter-spacing:0.03em;
+  background:var(--surface); color:var(--ink-soft);
+  border:1px solid var(--rule); border-radius:3px;
+  padding:0.5rem 0.8rem; cursor:pointer; box-shadow:var(--shadow);
+  opacity:0; visibility:hidden; transform:translateY(6px);
+  transition:opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+#to-top.show { opacity:1; visibility:visible; transform:translateY(0); }
+#to-top:hover { color:var(--accent); border-color:var(--accent); }
+#to-top:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+#to-top .arrow { font-size:0.95rem; line-height:1; }
+@media (max-width:560px) { #to-top .label { display:none; } }
+
+html { scroll-behavior:smooth; }
+@media (prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+  #to-top { transition:none; }
+}
 """
 
 JS = """
@@ -453,7 +513,125 @@ document.querySelectorAll("[data-expand]").forEach(function (btn) {
     scope.querySelectorAll("details.fn").forEach(function (d) { d.open = open; });
   });
 });
+
+// ---- theme toggle ----------------------------------------------------
+(function () {
+  var btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  var icon = btn.querySelector(".icon");
+  var label = btn.querySelector(".label");
+
+  function current() {
+    var set = document.documentElement.getAttribute("data-theme");
+    if (set) return set;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark" : "light";
+  }
+  function paint(mode) {
+    // The button offers the theme you would switch to, not the one you are in.
+    var next = mode === "dark" ? "light" : "dark";
+    icon.textContent = next === "dark" ? "\\u25D1" : "\\u25D0";
+    label.textContent = next === "dark" ? "Dark" : "Light";
+    btn.setAttribute("aria-label", "Switch to the " + next + " theme");
+  }
+  paint(current());
+  btn.addEventListener("click", function () {
+    var next = current() === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("anova-theme", next); } catch (e) {}
+    paint(next);
+  });
+})();
+
+// ---- back to top -----------------------------------------------------
+(function () {
+  var btn = document.getElementById("to-top");
+  if (!btn) return;
+  var ticking = false;
+  function update() {
+    btn.classList.toggle("show", window.scrollY > 600);
+    ticking = false;
+  }
+  window.addEventListener("scroll", function () {
+    if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+  update();
+  btn.addEventListener("click", function () {
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    document.querySelector("h1").focus({ preventScroll: true });
+  });
+})();
 """
+
+
+def docstring_md(fn) -> str:
+    """The same docstring rendering as the site, in Markdown."""
+    doc = inspect.getdoc(fn) or ""
+    blocks = [b for b in doc.split("\n\n") if b.strip()][1:]  # summary is in the row
+    out = []
+    for b in blocks:
+        lines = b.split("\n")
+        if len(lines) >= 2 and lines[1].strip() and set(lines[1].strip()) == {"-"}:
+            out.append(f"**{lines[0].strip()}**\n")
+            entries, loose = [], []
+            for line in lines[2:]:
+                m = re.match(r"^(\w[\w, ]*?) +: +(.*)$", line)
+                if m:
+                    entries.append((m.group(1), [m.group(2)]))
+                elif entries and line.strip():
+                    entries[-1][1].append(line.strip())
+                elif line.strip():
+                    loose.append(line.strip())
+            for nm, desc in entries:
+                out.append(f"- `{nm}` — {' '.join(desc).strip()}")
+            if entries:
+                out.append("")
+            if loose:
+                out.append(" ".join(loose) + "\n")
+        elif any(line.startswith("    ") for line in lines):
+            out.append("```\n" + textwrap.dedent(b) + "\n```\n")
+        else:
+            out.append(" ".join(l.strip() for l in lines) + "\n")
+    return "\n".join(out).strip() or "_No further description._"
+
+
+def function_card_md(mod, name: str) -> str:
+    fn = getattr(mod, name)
+    sig = str(inspect.signature(fn))
+    summary = (inspect.getdoc(fn) or "").split("\n\n")[0].replace("\n", " ").strip()
+    analogue = R_ANALOGUE.get(name, "")
+    r_note = f"\nR analogue: `{analogue}`\n" if analogue else ""
+    return (f"<details>\n<summary><code>{name}{sig}</code> — {summary}</summary>\n\n"
+            f"{docstring_md(fn)}\n{r_note}\n</details>")
+
+
+def package_section_md(pkg: dict, index: int, ex_md: str) -> str:
+    mod = pkg["module"]
+    name = pkg["name"]
+    order = list(pkg["order"]) + [f for f in mod.__all__ if f not in pkg["order"]]
+    cards = "\n\n".join(function_card_md(mod, f) for f in order)
+    goal = re.sub(r"</?code>", "`", pkg["goal"])
+    return f"""<a id="{name}"></a>
+
+## {index + 1}. `{name}` — {pkg['role']}
+
+### Goal
+
+{goal}
+
+R analogues: `{pkg['analogues']}`
+
+### Functions ({len(order)})
+
+Each entry is collapsed. Select one to read its full description, taken
+directly from the function's documentation.
+
+{cards}
+
+### Examples
+
+{ex_md}"""
 
 
 def package_section(pkg: dict, index: int, examples_html: str) -> str:
@@ -496,87 +674,362 @@ def package_section(pkg: dict, index: int, examples_html: str) -> str:
 </section>"""
 
 
+# Examples are written once, as prose in Markdown plus code. They are executed
+# once and rendered into both the HTML page and the README, so the two cannot
+# disagree about what the packages produce.
+EXAMPLE_SPECS = {
+    "psystats": [
+        ("Linear regression. Standardized coefficients appear in the `beta` "
+         "column beside the unstandardized `b`.",
+         '''
+         from psystats import linreg
+
+         print(linreg(df, outcome="bdi_sum", predictors=["bai_sum", "age"]))
+         ''', True),
+        ("Risk measures for a 2 × 2 table. `exposed` and `positive` name the "
+         "level counted as exposed and as the event.",
+         '''
+         from psystats import riskratio
+
+         print(riskratio(df, exposure="high_anxiety", outcome="depressed",
+                         exposed=1, positive=1))
+         ''', True),
+    ],
+    "psymetrics": [
+        ("Reliability and the two standard factorability checks, run on the "
+         "21 BDI items.",
+         '''
+         from psymetrics import alpha, kmo, bartlett
+
+         bdi = df[[f"bdi_{i}" for i in range(1, 22)]]
+
+         print(f"raw alpha   = {alpha(bdi).values['raw_alpha']:.3f}")
+         print(f"overall KMO = {kmo(bdi).values['overall']:.3f}")
+         print(bartlett(bdi))
+         ''', True),
+        ("Confirmatory factor analysis. The model is written in lavaan syntax, "
+         "so a specification transfers from R unchanged. This function requires "
+         "the `sem` extra, and so is shown here without output.",
+         '''
+         from psymetrics import cfa
+
+         model = """
+         visual  =~ x1 + x2 + x3
+         textual =~ x4 + x5 + x6
+         speed   =~ x7 + x8 + x9
+         """
+         fit = cfa(model, data)
+         fit.values["fit"]        # chi2, df, cfi, tli, rmsea
+         fit.values["loadings"]   # standardized loadings
+         ''', False),
+    ],
+    "psyreport": [
+        ("APA-7 text for a t test and a one-way ANOVA.",
+         '''
+         from psystats import ttest, anova
+         from psyreport import report
+
+         print(report(ttest(df, dv="bdi_sum", group="sex")))
+         print(report(anova(df, dv="bdi_sum", group="country")))
+         ''', True),
+        ("The same machinery exports a correlation matrix as a LaTeX table.",
+         '''
+         from psystats import corr_matrix
+         from psyreport import to_latex
+
+         cm = corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"])
+         print(to_latex(cm, caption="Correlations among study variables"))
+         ''', True),
+    ],
+}
+
+
+def _md_inline(s: str) -> str:
+    """Render the small Markdown subset used in example prose as HTML."""
+    s = esc(s)
+    s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
+    return re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)
+
+
+WORKED_CODE = '''
+from psystats import load_mapfre, table1
+
+df = load_mapfre()
+print(table1(df, group="country", columns=["age", "sex", "bdi_sum"]))
+'''
+
+
+def resolve_examples() -> dict:
+    """Execute each example once, keeping the code and its captured output."""
+    resolved = {}
+    for pkg, specs in EXAMPLE_SPECS.items():
+        items = []
+        for prose, code, execute in specs:
+            code = textwrap.dedent(code).strip("\n")
+            items.append({
+                "prose": prose,
+                "code": code,
+                "out": run(code) if execute else None,
+            })
+        resolved[pkg] = items
+    worked = textwrap.dedent(WORKED_CODE).strip("\n")
+    resolved["_worked"] = [{"prose": "", "code": worked, "out": run(worked)}]
+    return resolved
+
+
+def examples_html(items: list) -> str:
+    out = []
+    for it in items:
+        out.append(f"<p>{_md_inline(it['prose'])}</p>")
+        out.append(code_block(it["code"]))
+        if it["out"]:
+            out.append('<div class="code out"><div class="code-label">'
+                       f'<span>Output</span></div><pre>{esc(it["out"])}</pre></div>')
+    return "\n".join(out)
+
+
+def examples_md(items: list) -> str:
+    out = []
+    for it in items:
+        out.append(it["prose"] + "\n")
+        out.append(f"```python\n{it['code']}\n```\n")
+        if it["out"]:
+            out.append(f"```text\n{it['out']}\n```\n")
+    return "\n".join(out)
+
+
+def build_readme(resolved: dict) -> str:
+    """The repository landing page, mirroring the documentation site."""
+    toc = "\n".join(
+        f"- [{i+1}. **{p['name']}** — {p['role']}](#{p['name']})"
+        for i, p in enumerate(PACKAGES)
+    )
+    sections = "\n\n---\n\n".join(
+        package_section_md(p, i, examples_md(resolved[p["name"]]))
+        for i, p in enumerate(PACKAGES)
+    )
+    worked = resolved["_worked"][0]
+
+    return f"""# ANOVA METHODS
+
+[![Tests](https://github.com/anovabr/anova-methods/actions/workflows/ci.yml/badge.svg)](https://github.com/anovabr/anova-methods/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/psystats?label=psystats)](https://pypi.org/project/psystats/)
+[![PyPI](https://img.shields.io/pypi/v/psymetrics?label=psymetrics)](https://pypi.org/project/psymetrics/)
+[![PyPI](https://img.shields.io/pypi/v/psyreport?label=psyreport)](https://pypi.org/project/psyreport/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Three packages covering the statistical analyses commonly reported in
+psychology: descriptive and group comparison tables, inferential tests with
+effect sizes, regression, risk measures, reliability and factor analysis, and
+APA-7 formatted output. The interface is functional and modelled on the
+equivalent R packages.
+
+Maintained by Luis Anunciação, PhD — Pontifical Catholic University of Rio de
+Janeiro (PUC-Rio) and University of Oregon.
+ORCID [0000-0001-5303-5782](https://orcid.org/0000-0001-5303-5782).
+Free and open under the MIT licence.
+
+📖 **[Documentation site]({SITE_URL})** — the same content as this page, with a
+sticky contents rail and a light or dark theme.
+
+## Contents
+
+- [Installation](#installation)
+- [The example dataset](#the-example-dataset)
+- [A worked example](#a-worked-example)
+- [Equivalents in R](#equivalents-in-r)
+{toc}
+- [Validation](#validation)
+- [Citing](#citing)
+- [Contributing](#contributing)
+- [Development](#development)
+
+---
+
+## Installation
+
+The three packages are published on PyPI and can be installed together.
+
+```bash
+pip install psystats psymetrics psyreport
+```
+
+Python 3.10 or newer is required. If the `pip` command is not recognised, use
+`python -m pip install …` instead.
+
+Confirmatory factor analysis (`psymetrics.cfa`) depends on `semopy`, which is
+kept as an optional extra so that the core packages install without a compiler
+toolchain:
+
+```bash
+pip install "psymetrics[sem]"
+```
+
+## The example dataset
+
+A teaching dataset is bundled inside `psystats`, so every example below runs
+without any download. It contains responses from 1,957 undergraduate students
+in Spain, Portugal, and Brazil on the Beck Depression Inventory (`bdi_1` to
+`bdi_21`, `bdi_sum`, `bdi_class`) and the Beck Anxiety Inventory (`bai_*`),
+together with cyber-victimization, cyber-aggression, and emotion-regulation
+scales, and the demographics `country`, `sex`, and `age`.
+
+```python
+from psystats import load_mapfre
+
+df = load_mapfre()
+df.shape          # (1957, 94)
+```
+
+The data are described in Afonso Junior et al. (2020), *Psicologia: Teoria e
+Pesquisa, 36*, e36412.
+
+## A worked example
+
+Every function returns a result object. Printing it gives a summary in the style
+R would produce, `.values` holds the raw numbers, `.table` holds the result
+table, and passing it to `psyreport.report()` gives APA-7 text.
+
+```python
+{worked['code']}
+```
+
+```text
+{worked['out']}
+```
+
+`table1()` selects the test per variable. Each group is screened for normality
+with Shapiro-Wilk. Continuous variables are compared with a Welch t test or a
+one-way ANOVA when normal, and with Mann-Whitney or Kruskal-Wallis when not;
+categorical variables are compared with Fisher's exact test for a 2 × 2 table
+and chi-square otherwise. Normal variables are summarised as *M (SD)*,
+non-normal ones as median [Q1, Q3], and categorical ones as *n* (%) within each
+group.
+
+> [!TIP]
+> Pass `columns` explicitly. When it is omitted, every remaining column is
+> compared, which on this dataset means all 93 of them.
+
+## Equivalents in R
+
+Function and argument names follow the R packages that perform the same
+analyses, so a specification written in R generally transfers with little
+change.
+
+| R | Python |
+|---|---|
+| `psych::alpha(bdi)` | `psymetrics.alpha(bdi)` |
+| `arsenal::tableby(country ~ ., df)` | `psystats.table1(df, group="country")` |
+| `epitools::riskratio(x)` | `psystats.riskratio(df, exposure=..., outcome=...)` |
+| `psych::fa(items, nfactors=2)` | `psymetrics.efa(items, n_factors=2)` |
+| `lavaan::cfa(model, data)` | `psymetrics.cfa(model, data)` |
+
+---
+
+{sections}
+
+---
+
+<a id="validation"></a>
+
+## Validation
+
+Estimates are checked against independent references rather than against the
+packages' own output. Test statistics, confidence intervals, and regression
+coefficients are compared with `scipy` and `statsmodels`, effect sizes with
+closed form identities, and the fit indices returned by `cfa` with `semopy`
+computed directly on the Holzinger and Swineford data. The suite of 50 tests
+runs on every push and pull request.
+
+```bash
+pytest packages/
+```
+
+## Documentation
+
+- [**Documentation site**]({SITE_URL}) — this page with a sticky contents rail
+  and a light or dark theme. Rebuilt on every push and stamped with the date it
+  was last built.
+- [**psystats by example**](packages/psystats/EXAMPLES.md) — every public
+  function with a runnable example, generated by executing each block.
+- [**The paper**](paper/paper.md) ([PDF](paper/paper.pdf)) — the manuscript
+  describing all three packages.
+- [`CHANGELOG.md`](CHANGELOG.md) — what changed in each version.
+
+<a id="citing"></a>
+
+## Citing
+
+Citation metadata is held in [`CITATION.cff`](CITATION.cff), which GitHub
+renders as a **Cite this repository** button in the sidebar, giving APA and
+BibTeX entries directly. Releases are archived on Zenodo, which mints a
+permanent DOI for each version.
+
+> Anunciação, L. (2026). *ANOVA Methods: psystats, psymetrics, and psyreport*
+> (Version 0.1.2) [Computer software]. https://github.com/anovabr/anova-methods
+
+```bibtex
+@software{{anunciacao_anova_methods,
+  author  = {{Anunciação, Luis}},
+  title   = {{ANOVA Methods: psystats, psymetrics, and psyreport}},
+  year    = {{2026}},
+  version = {{0.1.2}},
+  url     = {{https://github.com/anovabr/anova-methods}}
+}}
+```
+
+The bundled dataset has its own citation, which applies when it is used in a
+publication.
+
+> Afonso Junior, A., Portugal, A. C. de A., Landeira-Fernandez, J., Bullón,
+> F. F., dos Santos, E. J. R., de Vilhena, J., & Anunciação, L. (2020). Sintomas
+> de depressão e ansiedade em uma amostra representativa de universitários
+> espanhóis, portugueses e brasileiros. *Psicologia: Teoria e Pesquisa, 36*,
+> e36412. https://doi.org/10.1590/0102.3772e36412
+
+<a id="contributing"></a>
+
+## Contributing
+
+Bug reports, questions, and pull requests are welcome — see
+[`CONTRIBUTING.md`](CONTRIBUTING.md). Reports that a statistic disagrees with an
+established reference are especially useful; include the value you expected and
+where it comes from.
+
+<a id="development"></a>
+
+## Development
+
+Each package under `packages/` is built and published to PyPI independently.
+
+```bash
+pip install -e packages/psystats -e packages/psymetrics -e packages/psyreport
+pip install pytest
+pytest packages/
+```
+
+See [`PUBLISHING.md`](PUBLISHING.md) for the PyPI release steps and
+[`GITHUB_SETUP.md`](GITHUB_SETUP.md) for releases, Zenodo archiving, and the
+JOSS submission checklist.
+
+License: MIT
+
+<!-- This file is generated by docs/build_site.py, which also builds the
+     documentation site. Edit that script rather than this file; a push
+     rebuilds both. Last built {BUILT_HUMAN}. -->
+"""
+
+
 def main() -> None:
     run(PRELUDE)
 
-    # ---- examples, executed now so the output on the page is real ----------
-    psystats_ex = (
-        "<p>Linear regression. Standardized coefficients appear in the "
-        "<code>beta</code> column beside the unstandardized <code>b</code>.</p>"
-        + example('''
-            from psystats import linreg
+    resolved = resolve_examples()
+    examples = [examples_html(resolved[p["name"]]) for p in PACKAGES]
 
-            print(linreg(df, outcome="bdi_sum", predictors=["bai_sum", "age"]))
-        ''')
-        + "<p>Risk measures for a 2 × 2 table. <code>exposed</code> and "
-          "<code>positive</code> name the level counted as exposed and as the "
-          "event.</p>"
-        + example('''
-            from psystats import riskratio
-
-            print(riskratio(df, exposure="high_anxiety", outcome="depressed",
-                            exposed=1, positive=1))
-        ''')
-    )
-
-    psymetrics_ex = (
-        "<p>Reliability and the two standard factorability checks, run on the "
-        "21 BDI items.</p>"
-        + example('''
-            from psymetrics import alpha, kmo, bartlett
-
-            bdi = df[[f"bdi_{i}" for i in range(1, 22)]]
-
-            print(f"raw alpha   = {alpha(bdi).values['raw_alpha']:.3f}")
-            print(f"overall KMO = {kmo(bdi).values['overall']:.3f}")
-            print(bartlett(bdi))
-        ''')
-        + "<p>Confirmatory factor analysis. The model is written in lavaan "
-          "syntax, so a specification transfers from R unchanged. This function "
-          "requires the <code>sem</code> extra, and so is shown here without "
-          "output.</p>"
-        + code_block('''
-            from psymetrics import cfa
-
-            model = """
-            visual  =~ x1 + x2 + x3
-            textual =~ x4 + x5 + x6
-            speed   =~ x7 + x8 + x9
-            """
-            fit = cfa(model, data)
-            fit.values["fit"]        # chi2, df, cfi, tli, rmsea
-            fit.values["loadings"]   # standardized loadings
-        ''')
-    )
-
-    psyreport_ex = (
-        "<p>APA-7 text for a t test and a one-way ANOVA.</p>"
-        + example('''
-            from psystats import ttest, anova
-            from psyreport import report
-
-            print(report(ttest(df, dv="bdi_sum", group="sex")))
-            print(report(anova(df, dv="bdi_sum", group="country")))
-        ''')
-        + "<p>The same machinery exports a correlation matrix as a LaTeX "
-          "table.</p>"
-        + example('''
-            from psystats import corr_matrix
-            from psyreport import to_latex
-
-            cm = corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"])
-            print(to_latex(cm, caption="Correlations among study variables"))
-        ''')
-    )
-
-    examples = [psystats_ex, psymetrics_ex, psyreport_ex]
-
-    worked = example('''
-        from psystats import load_mapfre, table1
-
-        df = load_mapfre()
-        print(table1(df, group="country", columns=["age", "sex", "bdi_sum"]))
-    ''')
+    w = resolved["_worked"][0]
+    worked = (code_block(w["code"])
+              + '<div class="code out"><div class="code-label"><span>Output</span>'
+                f'</div><pre>{esc(w["out"])}</pre></div>')
 
     dataset_block = code_block('''
         from psystats import load_mapfre
@@ -604,6 +1057,15 @@ def main() -> None:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANOVA Methods — Python packages for psychological research</title>
 <meta name="description" content="Three Python packages covering the statistical analyses commonly reported in psychology: group comparison tables, inferential tests with effect sizes, regression, risk measures, reliability, factor analysis, and APA-7 output.">
+<script>
+// Applied before the first paint so a stored theme does not flash the other one.
+(function () {{
+  try {{
+    var t = localStorage.getItem("anova-theme");
+    if (t) document.documentElement.setAttribute("data-theme", t);
+  }} catch (e) {{}}
+}})();
+</script>
 <style>{CSS}</style>
 </head>
 <body>
@@ -634,6 +1096,10 @@ def main() -> None:
       <span class="badge">MIT</span>
       <span class="badge stamp">Last updated
         <b><time datetime="{BUILT_ISO}">{BUILT_HUMAN}</time></b></span>
+      <button id="theme-toggle" class="theme-toggle" type="button"
+              aria-label="Switch theme">
+        <span class="icon" aria-hidden="true">◑</span><span class="label">Dark</span>
+      </button>
     </div>
   </header>
 
@@ -802,6 +1268,11 @@ https://doi.org/10.1590/0102.3772e36412''', "APA — dataset", copy=False)}
   </footer>
 
 </div>
+
+<button id="to-top" type="button" aria-label="Back to top">
+  <span class="arrow" aria-hidden="true">↑</span><span class="label">Top</span>
+</button>
+
 <script>{JS}</script>
 </body>
 </html>
@@ -809,6 +1280,10 @@ https://doi.org/10.1590/0102.3772e36412''', "APA — dataset", copy=False)}
     OUT.write_text(doc, encoding="utf-8")
     total = sum(len(p["module"].__all__) for p in PACKAGES)
     print(f"wrote {OUT} ({len(doc.splitlines())} lines, {total} functions documented)")
+
+    readme = build_readme(resolved)
+    README.write_text(readme, encoding="utf-8")
+    print(f"wrote {README} ({len(readme.splitlines())} lines)")
     print(f"last updated stamp: {BUILT_ISO}")
 
 

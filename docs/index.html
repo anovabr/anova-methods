@@ -5,12 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANOVA Methods — Python packages for psychological research</title>
 <meta name="description" content="Three Python packages covering the statistical analyses commonly reported in psychology: group comparison tables, inferential tests with effect sizes, regression, risk measures, reliability, factor analysis, and APA-7 output.">
+<script>
+// Applied before the first paint so a stored theme does not flash the other one.
+(function () {
+  try {
+    var t = localStorage.getItem("anova-theme");
+    if (t) document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+})();
+</script>
 <style>
 :root {
-  --paper:#F4F6F3; --surface:#FFFFFF; --surface-2:#ECEFEA;
-  --ink:#0F1417; --ink-soft:#3A443F; --muted:#63706A; --rule:#D6DCD6;
-  --accent:#17594A; --accent-ink:#FFFFFF; --accent-dim:#DCE9E3;
-  --signal:#B5462F; --code-bg:#EDF0EC;
+  --paper: #F4F6F3;
+  --surface: #FFFFFF;
+  --surface-2: #ECEFEA;
+  --ink: #0F1417;
+  --ink-soft: #3A443F;
+  --muted: #63706A;
+  --rule: #D6DCD6;
+  --accent: #17594A;
+  --accent-ink: #FFFFFF;
+  --accent-dim: #DCE9E3;
+  --signal: #B5462F;
+  --code-bg: #EDF0EC;
+  --shadow: 0 2px 10px rgba(15,20,23,0.10);
   --display:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
   --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
@@ -19,12 +37,53 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper:#0D1114; --surface:#141A1D; --surface-2:#1B2226;
-    --ink:#E8EDE9; --ink-soft:#BFC9C3; --muted:#8A9791; --rule:#2A3431;
-    --accent:#2E9C7E; --accent-ink:#06120E; --accent-dim:#16332B;
-    --signal:#E0785C; --code-bg:#101619;
+  --paper: #0D1114;
+  --surface: #141A1D;
+  --surface-2: #1B2226;
+  --ink: #E8EDE9;
+  --ink-soft: #BFC9C3;
+  --muted: #8A9791;
+  --rule: #2A3431;
+  --accent: #2E9C7E;
+  --accent-ink: #06120E;
+  --accent-dim: #16332B;
+  --signal: #E0785C;
+  --code-bg: #101619;
+  --shadow: 0 2px 10px rgba(0,0,0,0.45);
   }
 }
+/* An explicit choice from the toggle wins over the system preference. */
+:root[data-theme="dark"] {
+  --paper: #0D1114;
+  --surface: #141A1D;
+  --surface-2: #1B2226;
+  --ink: #E8EDE9;
+  --ink-soft: #BFC9C3;
+  --muted: #8A9791;
+  --rule: #2A3431;
+  --accent: #2E9C7E;
+  --accent-ink: #06120E;
+  --accent-dim: #16332B;
+  --signal: #E0785C;
+  --code-bg: #101619;
+  --shadow: 0 2px 10px rgba(0,0,0,0.45);
+}
+:root[data-theme="light"] {
+  --paper: #F4F6F3;
+  --surface: #FFFFFF;
+  --surface-2: #ECEFEA;
+  --ink: #0F1417;
+  --ink-soft: #3A443F;
+  --muted: #63706A;
+  --rule: #D6DCD6;
+  --accent: #17594A;
+  --accent-ink: #FFFFFF;
+  --accent-dim: #DCE9E3;
+  --signal: #B5462F;
+  --code-bg: #EDF0EC;
+  --shadow: 0 2px 10px rgba(15,20,23,0.10);
+}
+
 * { box-sizing:border-box; }
 body {
   margin:0; background:var(--paper); color:var(--ink);
@@ -203,7 +262,40 @@ footer {
   padding-top:1.5rem; color:var(--muted); font-size:0.85rem;
 }
 footer p { max-width:70ch; }
-@media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }
+
+/* ---- theme toggle --------------------------------------------------- */
+.theme-toggle {
+  font-family:var(--body); font-size:0.74rem; letter-spacing:0.04em;
+  background:var(--surface); border:1px solid var(--rule); color:var(--ink-soft);
+  border-radius:2px; padding:0.2rem 0.6rem; cursor:pointer;
+  display:inline-flex; align-items:center; gap:0.4rem;
+}
+.theme-toggle:hover { color:var(--accent); border-color:var(--accent); }
+.theme-toggle:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.theme-toggle .icon { font-size:0.9rem; line-height:1; }
+
+/* ---- back to top ---------------------------------------------------- */
+#to-top {
+  position:fixed; right:1.25rem; bottom:1.25rem; z-index:50;
+  display:inline-flex; align-items:center; gap:0.4rem;
+  font-family:var(--body); font-size:0.78rem; letter-spacing:0.03em;
+  background:var(--surface); color:var(--ink-soft);
+  border:1px solid var(--rule); border-radius:3px;
+  padding:0.5rem 0.8rem; cursor:pointer; box-shadow:var(--shadow);
+  opacity:0; visibility:hidden; transform:translateY(6px);
+  transition:opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+#to-top.show { opacity:1; visibility:visible; transform:translateY(0); }
+#to-top:hover { color:var(--accent); border-color:var(--accent); }
+#to-top:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+#to-top .arrow { font-size:0.95rem; line-height:1; }
+@media (max-width:560px) { #to-top .label { display:none; } }
+
+html { scroll-behavior:smooth; }
+@media (prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+  #to-top { transition:none; }
+}
 </style>
 </head>
 <body>
@@ -233,7 +325,11 @@ footer p { max-width:70ch; }
       <span class="badge">Python <b>3.10+</b></span>
       <span class="badge">MIT</span>
       <span class="badge stamp">Last updated
-        <b><time datetime="2026-07-25T18:30:02Z">25 July 2026</time></b></span>
+        <b><time datetime="2026-07-25T18:42:59Z">25 July 2026</time></b></span>
+      <button id="theme-toggle" class="theme-toggle" type="button"
+              aria-label="Switch theme">
+        <span class="icon" aria-hidden="true">◑</span><span class="label">Dark</span>
+      </button>
     </div>
   </header>
 
@@ -328,8 +424,7 @@ df.shape          # (1957, 94)</pre></div>
       <div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import load_mapfre, table1
 
 df = load_mapfre()
-print(table1(df, group="country", columns=["age", "sex", "bdi_sum"]))</pre></div>
-<div class="code out"><div class="code-label"><span>Output</span></div><pre>Table 1 by country (n groups = 3)
+print(table1(df, group="country", columns=["age", "sex", "bdi_sum"]))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Table 1 by country (n groups = 3)
 variable level                SPAIN             PORTUGAL               BRAZIL           test     p
      age       21.00 [20.00, 23.00] 20.00 [19.00, 22.00] 21.00 [20.00, 23.00] Kruskal-Wallis &lt;.001
      sex     F          825 (68.2%)          223 (52.3%)          166 (52.7%)     Chi-square &lt;.001
@@ -523,7 +618,8 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
   </div>
 
   <h3 id="psystats-ex">Examples</h3>
-<p>Linear regression. Standardized coefficients appear in the <code>beta</code> column beside the unstandardized <code>b</code>.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import linreg
+<p>Linear regression. Standardized coefficients appear in the <code>beta</code> column beside the unstandardized <code>b</code>.</p>
+<div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import linreg
 
 print(linreg(df, outcome="bdi_sum", predictors=["bai_sum", "age"]))</pre></div>
 <div class="code out"><div class="code-label"><span>Output</span></div><pre>Linear regression: bdi_sum ~ bai_sum + age
@@ -532,7 +628,9 @@ print(linreg(df, outcome="bdi_sum", predictors=["bai_sum", "age"]))</pre></div>
              b     se  ci_low  ci_high   beta       t      p
 const    4.008  0.820   2.399    5.617  0.000   4.885  0.000
 bai_sum  0.579  0.017   0.544    0.613  0.604  33.123  0.000
-age      0.015  0.037  -0.057    0.087  0.008   0.418  0.676</pre></div><p>Risk measures for a 2 × 2 table. <code>exposed</code> and <code>positive</code> name the level counted as exposed and as the event.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import riskratio
+age      0.015  0.037  -0.057    0.087  0.008   0.418  0.676</pre></div>
+<p>Risk measures for a 2 × 2 table. <code>exposed</code> and <code>positive</code> name the level counted as exposed and as the event.</p>
+<div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import riskratio
 
 print(riskratio(df, exposure="high_anxiety", outcome="depressed",
                 exposed=1, positive=1))</pre></div>
@@ -618,7 +716,8 @@ rotation : None, 'varimax', 'promax' (default), 'oblimin', 'quartimax',
   </div>
 
   <h3 id="psymetrics-ex">Examples</h3>
-<p>Reliability and the two standard factorability checks, run on the 21 BDI items.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import alpha, kmo, bartlett
+<p>Reliability and the two standard factorability checks, run on the 21 BDI items.</p>
+<div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import alpha, kmo, bartlett
 
 bdi = df[[f"bdi_{i}" for i in range(1, 22)]]
 
@@ -628,7 +727,9 @@ print(bartlett(bdi))</pre></div>
 <div class="code out"><div class="code-label"><span>Output</span></div><pre>raw alpha   = 0.895
 overall KMO = 0.942
 Bartlett's test of sphericity
-  chi2 = 11585.607, p = 0</pre></div><p>Confirmatory factor analysis. The model is written in lavaan syntax, so a specification transfers from R unchanged. This function requires the <code>sem</code> extra, and so is shown here without output.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import cfa
+  chi2 = 11585.607, p = 0</pre></div>
+<p>Confirmatory factor analysis. The model is written in lavaan syntax, so a specification transfers from R unchanged. This function requires the <code>sem</code> extra, and so is shown here without output.</p>
+<div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import cfa
 
 model = """
 visual  =~ x1 + x2 + x3
@@ -692,13 +793,16 @@ fit.values["loadings"]   # standardized loadings</pre></div>
   </div>
 
   <h3 id="psyreport-ex">Examples</h3>
-<p>APA-7 text for a t test and a one-way ANOVA.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import ttest, anova
+<p>APA-7 text for a t test and a one-way ANOVA.</p>
+<div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import ttest, anova
 from psyreport import report
 
 print(report(ttest(df, dv="bdi_sum", group="sex")))
 print(report(anova(df, dv="bdi_sum", group="country")))</pre></div>
 <div class="code out"><div class="code-label"><span>Output</span></div><pre>t(1540.0) = -2.52, p = .012, d = -.12.
-F(2, 1946) = 8.85, p &lt; .001, η² = .01.</pre></div><p>The same machinery exports a correlation matrix as a LaTeX table.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import corr_matrix
+F(2, 1946) = 8.85, p &lt; .001, η² = .01.</pre></div>
+<p>The same machinery exports a correlation matrix as a LaTeX table.</p>
+<div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import corr_matrix
 from psyreport import to_latex
 
 cm = corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"])
@@ -768,11 +872,16 @@ https://doi.org/10.1590/0102.3772e36412</pre></div>
     <p style="margin-top:0.75rem;">
       This page is generated from the installed packages, and the output shown in
       the examples is produced by running them.
-      Last updated <time datetime="2026-07-25T18:30:02Z">25 July 2026</time>.
+      Last updated <time datetime="2026-07-25T18:42:59Z">25 July 2026</time>.
     </p>
   </footer>
 
 </div>
+
+<button id="to-top" type="button" aria-label="Back to top">
+  <span class="arrow" aria-hidden="true">↑</span><span class="label">Top</span>
+</button>
+
 <script>
 document.querySelectorAll(".copy").forEach(function (btn) {
   btn.addEventListener("click", function () {
@@ -794,6 +903,55 @@ document.querySelectorAll("[data-expand]").forEach(function (btn) {
     scope.querySelectorAll("details.fn").forEach(function (d) { d.open = open; });
   });
 });
+
+// ---- theme toggle ----------------------------------------------------
+(function () {
+  var btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  var icon = btn.querySelector(".icon");
+  var label = btn.querySelector(".label");
+
+  function current() {
+    var set = document.documentElement.getAttribute("data-theme");
+    if (set) return set;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark" : "light";
+  }
+  function paint(mode) {
+    // The button offers the theme you would switch to, not the one you are in.
+    var next = mode === "dark" ? "light" : "dark";
+    icon.textContent = next === "dark" ? "\u25D1" : "\u25D0";
+    label.textContent = next === "dark" ? "Dark" : "Light";
+    btn.setAttribute("aria-label", "Switch to the " + next + " theme");
+  }
+  paint(current());
+  btn.addEventListener("click", function () {
+    var next = current() === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("anova-theme", next); } catch (e) {}
+    paint(next);
+  });
+})();
+
+// ---- back to top -----------------------------------------------------
+(function () {
+  var btn = document.getElementById("to-top");
+  if (!btn) return;
+  var ticking = false;
+  function update() {
+    btn.classList.toggle("show", window.scrollY > 600);
+    ticking = false;
+  }
+  window.addEventListener("scroll", function () {
+    if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+  update();
+  btn.addEventListener("click", function () {
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    document.querySelector("h1").focus({ preventScroll: true });
+  });
+})();
 </script>
 </body>
 </html>
