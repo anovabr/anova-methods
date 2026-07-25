@@ -1,0 +1,69 @@
+name: Create release
+
+# Cuts a GitHub release for a version already described in CHANGELOG.md.
+# Publishing the release is what triggers publish.yml (PyPI) and the Zenodo
+# archive that mints the DOI, so this is the single entry point for a release.
+#
+# Run it from the Actions tab: "Create release" -> "Run workflow" -> enter the
+# version (for example 0.1.1).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, without the leading v (e.g. 0.1.1)"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark as a pre-release"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          set -euo pipefail
+          version="${{ inputs.version }}"
+          # Take everything between this version's heading and the next "## " heading.
+          awk -v ver="$version" '
+            $0 ~ "^## " ver "([^0-9.]|$)" { capture = 1; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::error::No section for version $version found in CHANGELOG.md"
+            exit 1
+          fi
+          echo "Release notes:"
+          cat notes.md
+
+      - name: Verify the tag does not already exist
+        run: |
+          set -euo pipefail
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "::error::Tag v${{ inputs.version }} already exists."
+            exit 1
+          fi
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create "v${{ inputs.version }}" \
+            --title "v${{ inputs.version }}" \
+            --notes-file notes.md \
+            --target "$GITHUB_SHA" \
+            ${{ inputs.prerelease && '--prerelease' || '' }}
