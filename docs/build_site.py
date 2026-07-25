@@ -693,11 +693,23 @@ footer p { max-width:70ch; }
 }
 #brandbar.show { transform:translateY(0); }
 #brandbar .brand-logo { height:30px; }
+/* The wordmark dissolves out when the reader scrolls down, leaving the mark
+   alone, and dissolves back in when they scroll up. max-width carries the
+   layout so the mark slides left as the text goes, rather than the text
+   fading in place and leaving a gap. */
 #brandbar .bb-text {
   font-family:var(--display); font-size:1.02rem; letter-spacing:-0.01em;
   color:var(--ink); white-space:nowrap;
+  opacity:1; max-width:16ch; overflow:hidden;
+  transition:opacity 0.22s ease, max-width 0.30s ease, margin-left 0.30s ease;
+}
+#brandbar.collapsed .bb-text {
+  opacity:0; max-width:0; margin-left:-11px;
 }
 #brandbar .bb-text b { font-weight:600; color:var(--accent); }
+@media (prefers-reduced-motion:reduce) {
+  #brandbar .bb-text { transition:none; }
+}
 #brandbar .bb-spacer { flex:1; }
 #brandbar a.bb-link {
   font-family:var(--body); font-size:0.76rem; letter-spacing:0.04em;
@@ -794,16 +806,43 @@ document.querySelectorAll("[data-expand]").forEach(function (btn) {
 })();
 
 // ---- sticky brand bar ------------------------------------------------
+// The bar appears once the hero, which carries the full size mark, has
+// scrolled away. From there it responds to direction rather than position:
+// scrolling down collapses it to the mark alone, scrolling up dissolves the
+// wordmark back in.
 (function () {
   var bar = document.getElementById("brandbar");
   if (!bar) return;
+
+  var APPEAR = 300;   // px before the bar is shown at all
+  var DEADZONE = 6;   // px of movement to ignore, so it does not flicker
+  var lastY = window.scrollY;
   var ticking = false;
+
   function update() {
-    // Appear once the hero, which already carries the full-size mark, has
-    // scrolled away, so the two are never on screen together.
-    bar.classList.toggle("show", window.scrollY > 300);
     ticking = false;
+    var y = window.scrollY < 0 ? 0 : window.scrollY;
+
+    if (y <= APPEAR) {
+      bar.classList.remove("show");
+      bar.classList.remove("collapsed");
+      lastY = y;
+      return;
+    }
+
+    bar.classList.add("show");
+    var dy = y - lastY;
+    // Small movements, and the rubber-band overscroll at either end, must not
+    // toggle the state; only a deliberate scroll should.
+    if (dy > DEADZONE) {
+      bar.classList.add("collapsed");
+      lastY = y;
+    } else if (dy < -DEADZONE) {
+      bar.classList.remove("collapsed");
+      lastY = y;
+    }
   }
+
   window.addEventListener("scroll", function () {
     if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
   }, { passive: true });
