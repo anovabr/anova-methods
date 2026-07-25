@@ -61,6 +61,11 @@ jobs:
           PY
 
       - uses: actions/configure-pages@v5
+        with:
+          # Turn Pages on through the API the first time this runs, so the site
+          # does not depend on someone setting the source by hand.
+          enablement: true
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
