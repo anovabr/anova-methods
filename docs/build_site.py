@@ -516,9 +516,35 @@ body {
 @media (min-width:1000px) {
   .toc { position:sticky; top:1.5rem; max-height:calc(100vh - 3rem); overflow-y:auto; }
 }
-.toc h2 {
+/* On a phone the contents are a fourteen item list standing between the
+   reader and the page, so they collapse behind a single tappable row. On a
+   wide screen the details element is forced open by script and the summary
+   is left as a plain, inert label. */
+.toc summary {
   font-family:var(--mono); font-size:var(--step--1); text-transform:uppercase;
-  letter-spacing:0.1em; color:var(--muted); margin:0 0 0.85rem; font-weight:600;
+  letter-spacing:0.1em; color:var(--muted); font-weight:600;
+  cursor:pointer; list-style:none;
+  display:flex; align-items:center; gap:9px;
+  padding:12px 0; margin-bottom:0.35rem;
+  min-height:44px;                       /* a comfortable tap target */
+  border-bottom:1px solid var(--rule);
+}
+.toc summary::-webkit-details-marker { display:none; }
+.toc summary::before {
+  content:"+"; font-weight:700; color:var(--accent); width:1ch;
+}
+.toc details[open] > summary::before { content:"\\2212"; }
+.toc summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+@media (min-width:1000px) {
+  .toc summary {
+    pointer-events:none; padding:0; margin-bottom:0.85rem;
+    min-height:0; border-bottom:none;
+  }
+  /* Both selectors are listed so this matches the specificity of the
+     `details[open]` rule above; a bare `.toc summary::before` loses to it
+     and the minus sign stays on screen. */
+  .toc summary::before,
+  .toc details[open] > summary::before { content:""; width:0; }
 }
 .toc ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.12rem; }
 .toc a {
@@ -679,45 +705,96 @@ footer p { max-width:70ch; }
 :root[data-theme="light"] .brand-logo img.lg-light { display:block; }
 :root[data-theme="light"] .brand-logo img.lg-dark  { display:none; }
 
-/* ---- sticky brand bar ------------------------------------------------ */
+/* ---- permanent brand bar --------------------------------------------- */
+/* The bar is always on screen. At the top of the page it shows the mark and
+   the full wordmark; once the reader scrolls, the wordmark and "Methods"
+   retire and the mark alone remains, in a shorter bar.
+   --bar-h is the resting height, and the body is padded by it so nothing
+   sits underneath. The padding stays at the resting height even after the
+   bar shrinks, so the page content never shifts under the reader. */
+:root { --bar-h:64px; --bar-h-small:52px; }
+
+body { padding-top:var(--bar-h); }
+
 #brandbar {
   position:fixed; top:0; left:0; right:0; z-index:60;
-  display:flex; align-items:center; gap:11px;
-  padding:9px 20px;
-  background:color-mix(in srgb, var(--paper) 88%, transparent);
-  -webkit-backdrop-filter:saturate(180%) blur(10px);
-  backdrop-filter:saturate(180%) blur(10px);
-  border-bottom:1px solid var(--rule);
-  transform:translateY(-105%);
-  transition:transform 0.22s ease;
+  display:flex; align-items:center; gap:12px;
+  height:var(--bar-h);
+  padding:0 22px;
+  background:color-mix(in srgb, var(--paper) 86%, transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(12px);
+  backdrop-filter:saturate(180%) blur(12px);
+  border-bottom:1px solid transparent;
+  transition:height 0.30s cubic-bezier(0.4, 0, 0.2, 1),
+             border-color 0.30s ease;
 }
-#brandbar.show { transform:translateY(0); }
-#brandbar .brand-logo { height:30px; }
-/* The wordmark dissolves out when the reader scrolls down, leaving the mark
-   alone, and dissolves back in when they scroll up. max-width carries the
-   layout so the mark slides left as the text goes, rather than the text
-   fading in place and leaving a gap. */
+#brandbar.scrolled {
+  height:var(--bar-h-small);
+  border-bottom-color:var(--rule);
+}
+
+#brandbar .brand-logo {
+  height:34px; flex:none;
+  transition:height 0.30s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#brandbar.scrolled .brand-logo { height:25px; }
+
+/* Width is animated alongside opacity so the mark settles left as the words
+   go, instead of the text fading in place and leaving a hole beside it. */
 #brandbar .bb-text {
-  font-family:var(--display); font-size:1.02rem; letter-spacing:-0.01em;
+  font-family:var(--display); font-size:1.06rem; letter-spacing:-0.01em;
   color:var(--ink); white-space:nowrap;
   opacity:1; max-width:16ch; overflow:hidden;
-  transition:opacity 0.22s ease, max-width 0.30s ease, margin-left 0.30s ease;
+  transition:opacity 0.20s ease,
+             max-width 0.30s cubic-bezier(0.4, 0, 0.2, 1),
+             margin-left 0.30s cubic-bezier(0.4, 0, 0.2, 1);
 }
-#brandbar.collapsed .bb-text {
-  opacity:0; max-width:0; margin-left:-11px;
-}
+#brandbar.scrolled .bb-text { opacity:0; max-width:0; margin-left:-12px; }
 #brandbar .bb-text b { font-weight:600; color:var(--accent); }
-@media (prefers-reduced-motion:reduce) {
-  #brandbar .bb-text { transition:none; }
-}
+
 #brandbar .bb-spacer { flex:1; }
 #brandbar a.bb-link {
-  font-family:var(--body); font-size:0.76rem; letter-spacing:0.04em;
+  font-family:var(--body); font-size:0.78rem; letter-spacing:0.03em;
   color:var(--muted); text-decoration:none; white-space:nowrap;
+  padding:6px 2px;
 }
 #brandbar a.bb-link:hover { color:var(--accent); }
-@media (max-width:560px) { #brandbar a.bb-link { display:none; } }
-@media (prefers-reduced-motion:reduce) { #brandbar { transition:none; } }
+#brandbar a.bb-link:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+/* Phones. The bar keeps the mark and the wordmark, since that is the whole
+   point of it, and drops the links, which cannot fit without crowding. Sizes
+   step down so the bar takes less of a short screen, and the tap targets on
+   what remains stay at least 44px. */
+@media (max-width:700px) {
+  #brandbar a.bb-link { display:none; }
+}
+@media (max-width:640px) {
+  :root { --bar-h:56px; --bar-h-small:46px; }
+  #brandbar { padding:0 16px; gap:10px; }
+  #brandbar .brand-logo { height:28px; }
+  #brandbar.scrolled .brand-logo { height:21px; }
+  #brandbar .bb-text { font-size:0.98rem; }
+  #brandbar.scrolled .bb-text { margin-left:-10px; }
+}
+@media (max-width:380px) {
+  #brandbar .bb-text { font-size:0.9rem; }
+}
+@media (prefers-reduced-motion:reduce) {
+  #brandbar, #brandbar .brand-logo, #brandbar .bb-text { transition:none; }
+}
+
+/* ---- phone spacing ---------------------------------------------------- */
+/* The body is already padded by the bar, so the hero's own top padding is
+   mostly wasted height on a short screen. */
+@media (max-width:640px) {
+  .hero { padding:1.6rem 0 1.6rem; }
+  .shell { padding:0 1rem 3rem; gap:1.75rem; }
+  main { gap:2.5rem; }
+  .hero .lede { font-size:1.05rem; }
+  .code pre { font-size:0.79rem; }
+  details.fn summary { padding:0.8rem 0.85rem; }
+  .fn-body { padding:0.2rem 0.85rem 0.9rem 1.7rem; }
+}
 
 /* ---- theme toggle --------------------------------------------------- */
 .theme-toggle {
@@ -805,41 +882,45 @@ document.querySelectorAll("[data-expand]").forEach(function (btn) {
   });
 })();
 
-// ---- sticky brand bar ------------------------------------------------
-// The bar appears once the hero, which carries the full size mark, has
-// scrolled away. From there it responds to direction rather than position:
-// scrolling down collapses it to the mark alone, scrolling up dissolves the
-// wordmark back in.
+// ---- contents: open on wide screens, collapsed on phones -------------
+(function () {
+  var toc = document.getElementById("toc-details");
+  if (!toc) return;
+  var wide = window.matchMedia("(min-width: 1000px)");
+  function sync() { toc.open = wide.matches; }
+  sync();
+  if (wide.addEventListener) { wide.addEventListener("change", sync); }
+  else if (wide.addListener) { wide.addListener(sync); }
+  // Tapping a link on a phone should close the list, not leave it covering
+  // the section the reader just asked for.
+  toc.querySelectorAll("a").forEach(function (a) {
+    a.addEventListener("click", function () {
+      if (!wide.matches) { toc.open = false; }
+    });
+  });
+})();
+
+// ---- permanent brand bar ---------------------------------------------
+// The bar is always present. It carries the full wordmark at the top of the
+// page and collapses to the mark alone once the reader has scrolled. The
+// two thresholds are deliberately apart: collapsing at 60px and expanding
+// again only below 20px stops the bar flipping back and forth when a scroll
+// comes to rest near the boundary.
 (function () {
   var bar = document.getElementById("brandbar");
   if (!bar) return;
 
-  var APPEAR = 300;   // px before the bar is shown at all
-  var DEADZONE = 6;   // px of movement to ignore, so it does not flicker
-  var lastY = window.scrollY;
+  var COLLAPSE_AT = 60;
+  var EXPAND_AT = 20;
   var ticking = false;
 
   function update() {
     ticking = false;
     var y = window.scrollY < 0 ? 0 : window.scrollY;
-
-    if (y <= APPEAR) {
-      bar.classList.remove("show");
-      bar.classList.remove("collapsed");
-      lastY = y;
-      return;
-    }
-
-    bar.classList.add("show");
-    var dy = y - lastY;
-    // Small movements, and the rubber-band overscroll at either end, must not
-    // toggle the state; only a deliberate scroll should.
-    if (dy > DEADZONE) {
-      bar.classList.add("collapsed");
-      lastY = y;
-    } else if (dy < -DEADZONE) {
-      bar.classList.remove("collapsed");
-      lastY = y;
+    if (y > COLLAPSE_AT) {
+      bar.classList.add("scrolled");
+    } else if (y < EXPAND_AT) {
+      bar.classList.remove("scrolled");
     }
   }
 
@@ -1414,10 +1495,6 @@ def main() -> None:
 <div class="shell">
 
   <header class="hero">
-    <span class="brand-logo">
-      <img class="lg-light" src="assets/logo-light.svg" alt="ANOVA Methods">
-      <img class="lg-dark" src="assets/logo-dark.svg" alt="ANOVA Methods">
-    </span>
     <p class="eyebrow">Python packages for psychological research</p>
     <h1>ANOVA Methods</h1>
     <p class="lede">
@@ -1450,7 +1527,8 @@ def main() -> None:
   </header>
 
   <nav class="toc" aria-label="Contents">
-    <h2>Contents</h2>
+    <details id="toc-details">
+    <summary>Contents</summary>
     <ol>
       <li><a href="#install">Installation</a></li>
       <li><a href="#dataset">The example dataset</a></li>
@@ -1460,6 +1538,7 @@ def main() -> None:
       <li><a href="#validation">Validation</a></li>
       <li><a href="#citing">Citing</a></li>
     </ol>
+    </details>
   </nav>
 
   <main>
