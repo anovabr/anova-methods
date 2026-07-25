@@ -2,13 +2,7 @@
 
 All three packages are versioned together during initial development.
 
-## 0.1.1 — 2026-07-25
-
-### psystats
-- Added `load_mapfre()`: a bundled teaching dataset of depression and anxiety
-  symptoms in 1,957 undergraduates from Spain, Portugal, and Brazil (Afonso
-  Junior et al., 2020, doi:10.1590/0102.3772e36412). All package examples now
-  use it.
+## 0.1.2 — 2026-07-25
 
 ### Documentation
 - `packages/psystats/EXAMPLES.md`: all 13 public functions of `psystats`
@@ -26,7 +20,16 @@ All three packages are versioned together during initial development.
 - Added a `.gitignore` for bytecode and packaging artifacts.
 
 No package source changed in this release; it covers documentation and project
-infrastructure only.
+infrastructure only. It is the first release archived on Zenodo, so it is the
+one carrying the citable DOI.
+
+## 0.1.1 — 2026-07-18
+
+### psystats
+- Added `load_mapfre()`: a bundled teaching dataset of depression and anxiety
+  symptoms in 1,957 undergraduates from Spain, Portugal, and Brazil (Afonso
+  Junior et al., 2020, doi:10.1590/0102.3772e36412). All package examples now
+  use it.
 
 ## 0.1.0
 

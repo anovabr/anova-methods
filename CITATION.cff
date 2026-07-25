@@ -13,7 +13,7 @@ authors:
     given-names: "Luis"
     orcid: "https://orcid.org/0000-0001-5303-5782"
     affiliation: "Pontifical Catholic University of Rio de Janeiro (PUC-Rio); University of Oregon"
-version: 0.1.1
+version: 0.1.2
 date-released: "2026-07-25"
 license: MIT
 repository-code: "https://github.com/anovabr/anova-methods"
