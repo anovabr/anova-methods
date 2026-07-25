@@ -39,8 +39,8 @@ foundational component of the **ANOVA Methods** ecosystem, which also includes
 Psychologists conducting quantitative work rely heavily on a handful of R
 packages that pair a concise interface with output shaped for reporting:
 `arsenal` and `tableone` for group-comparison tables [@arsenal; @tableone],
-`epitools` for risk measures, and `apaTables` for APA-formatted output
-[@apaTables]. The Python scientific stack provides the underlying estimation
+`epitools` for risk measures [@epitools], and `apaTables` for APA-formatted
+output [@apaTables]. The Python scientific stack provides the underlying estimation
 machinery — `pandas` [@mckinney2010], `scipy` [@virtanen2020], and `statsmodels`
 [@seabold2010] — but exposes it through general-purpose interfaces that require
 substantial boilerplate to reach a publication-ready table, and offers no direct
