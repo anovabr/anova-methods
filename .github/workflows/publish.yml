@@ -1,8 +1,17 @@
 name: Publish to PyPI
 
+# A release published by hand through the GitHub UI fires the `release` trigger
+# below. A release created by release.yml does not: GitHub does not start
+# workflow runs from events raised with GITHUB_TOKEN, which is a guard against
+# workflows triggering themselves. release.yml therefore calls this workflow
+# directly through workflow_call, and workflow_dispatch allows a manual run
+# when a release has been published without the packages reaching PyPI.
+
 on:
   release:
     types: [published]
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   build-and-publish:

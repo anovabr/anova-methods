@@ -67,3 +67,13 @@ jobs:
             --notes-file notes.md \
             --target "$GITHUB_SHA" \
             ${{ inputs.prerelease && '--prerelease' || '' }}
+
+  # Creating the release above does not fire publish.yml's `release` trigger,
+  # because GitHub does not start workflow runs from events raised with
+  # GITHUB_TOKEN. Calling it here is what actually gets the packages to PyPI.
+  publish:
+    needs: release
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/publish.yml
