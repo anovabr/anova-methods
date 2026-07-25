@@ -325,7 +325,7 @@ html { scroll-behavior:smooth; }
       <span class="badge">Python <b>3.10+</b></span>
       <span class="badge">MIT</span>
       <span class="badge stamp">Last updated
-        <b><time datetime="2026-07-25T19:39:55Z">25 July 2026</time></b></span>
+        <b><time datetime="2026-07-25T20:43:42Z">25 July 2026</time></b></span>
       <button id="theme-toggle" class="theme-toggle" type="button"
               aria-label="Switch theme">
         <span class="icon" aria-hidden="true">◑</span><span class="label">Dark</span>
@@ -493,6 +493,17 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 <p>A representative sample of 1,957 undergraduate students in Spain, Portugal, and Brazil, with the Beck Depression Inventory (<code>bdi_1</code>–<code>bdi_21</code>, <code>bdi_sum</code>, <code>bdi_class</code>), the Beck Anxiety Inventory (<code>bai_1</code>–<code>bai_21</code>, <code>bai_sum</code>, <code>bai_class</code>), cyber-victimization/aggression and emotion- regulation scales, and demographics (<code>country</code>, <code>sex</code>, <code>age</code>, <code>grado</code>).</p>
 <h5>Source</h5>
 <p>Afonso Junior, A., Portugal, A. C. d. A., Landeira-Fernandez, J., Bullón, F. F., dos Santos, E. J. R., de Vilhena, J., &amp; Anunciação, L. (2020). Sintomas de Depressão e Ansiedade em uma Amostra Representativa de Universitários Espanhóis, Portugueses e Brasileiros [Depression and anxiety symptoms in a representative sample of undergraduate students in Spain, Portugal, and Brazil]. Psicologia: Teoria e Pesquisa, 36, Article e36412. <a href="https://doi.org/10.1590/0102.3772e36412">https://doi.org/10.1590/0102.3772e36412</a></p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import load_mapfre
+
+df = load_mapfre()
+print(df.shape)
+print(df[["country", "sex", "age", "bdi_sum", "bai_sum"]].head())</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>(1957, 94)
+  country  sex   age  bdi_sum  bai_sum
+0   SPAIN  NaN  18.0      1.0      0.0
+1   SPAIN  NaN   NaN      2.0      2.0
+2   SPAIN  NaN  26.0     16.0      3.0
+3   SPAIN  NaN   NaN      3.0      9.0
+4   SPAIN  NaN  20.0      9.0     13.0</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -503,6 +514,12 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>No further description.</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import describe
+
+print(describe(df, columns=["age", "bdi_sum", "bai_sum"]))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>              n    mean     sd  median   min   max   skew  kurtosis
+age      1929.0  21.460  3.828    21.0  17.0  68.0  5.023    41.470
+bdi_sum  1949.0   9.229  7.736     8.0   0.0  57.0  1.627     4.133
+bai_sum  1952.0   8.485  8.114     6.0   0.0  48.0  1.708     3.495</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -513,6 +530,15 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>No further description.</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import freq
+
+print(freq(df, "bdi_class", sort=False))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Frequencies: bdi_class (n = 1949)
+           count  percent  cum_percent
+bdi_class                             
+minima      1524    78.19        78.19
+leve         239    12.26        90.46
+moderada     130     6.67        97.13
+grave         56     2.87       100.00</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -523,6 +549,14 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>method: 'pearson' or 'spearman'. Returns r, p, and n matrices plus a display table with stars (* p&lt;.05, ** p&lt;.01, *** p&lt;.001).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import corr_matrix
+
+print(corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"]))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Correlation matrix (pearson)
+           age  bdi_sum  bai_sum
+age          1    -0.02    -0.04
+bdi_sum  -0.02        1  0.60***
+bai_sum  -0.04  0.60***        1
+* p&lt;.05  ** p&lt;.01  *** p&lt;.001</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -533,6 +567,14 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>Continuous, normal, 2 groups -&gt; Welch t-test; &gt;2 groups -&gt; one-way ANOVA. Continuous, non-normal -&gt; Mann-Whitney (2) / Kruskal-Wallis (&gt;2). Categorical -&gt; chi-square (or Fisher exact for 2x2).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import table1
+
+print(table1(df, group="country", columns=["age", "sex", "bdi_sum"]))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Table 1 by country (n groups = 3)
+variable level                SPAIN             PORTUGAL               BRAZIL           test     p
+     age       21.00 [20.00, 23.00] 20.00 [19.00, 22.00] 21.00 [20.00, 23.00] Kruskal-Wallis &lt;.001
+     sex     F          825 (68.2%)          223 (52.3%)          166 (52.7%)     Chi-square &lt;.001
+             M          384 (31.8%)          203 (47.7%)          149 (47.3%)                     
+ bdi_sum         7.00 [3.00, 12.00]   7.00 [4.00, 12.00]   9.50 [5.00, 15.00] Kruskal-Wallis &lt;.001</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -543,6 +585,10 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>Long form: ttest(df, dv="score", group="cond"). Paired: pass group with exactly two levels and paired=True (matched by row order within each level after dropping NAs). Cohen's d uses the pooled SD (independent) or SD of differences (paired).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import ttest
+
+print(ttest(df, dv="bdi_sum", group="sex"))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Welch t-test: bdi_sum by sex
+  t(1540.0) = -2.517, p = 0.0119, Cohen's d = -0.118</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -553,6 +599,10 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>No further description.</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import anova
+
+print(anova(df, dv="bdi_sum", group="country"))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>One-way ANOVA: bdi_sum by country
+  F(2, 1946) = 8.846, p = 0.0001, eta^2 = 0.009, omega^2 = 0.008</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -563,6 +613,10 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>No further description.</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import chisq
+
+print(chisq(df, row="sex", col="bdi_class"))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Chi-square test of independence: sex x bdi_class
+  chi2(3) = 9.022, p = 0.0290, Cramer's V = 0.068, N = 1942</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -573,6 +627,15 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>Reports coefficients with CIs and p-values, standardized betas, R^2 and adjusted R^2, and the overall F test. Categorical predictors are dummy-coded (first level as reference).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import linreg
+
+print(linreg(df, outcome="bdi_sum", predictors=["bai_sum", "age"]))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Linear regression: bdi_sum ~ bai_sum + age
+  R^2 = 0.364, adj R^2 = 0.363, F(2, 1918) = 549.056, p = 2.896e-189, N = 1921
+
+             b     se  ci_low  ci_high   beta       t      p
+const    4.008  0.820   2.399    5.617  0.000   4.885  0.000
+bai_sum  0.579  0.017   0.544    0.613  0.604  33.123  0.000
+age      0.015  0.037  -0.057    0.087  0.008   0.418  0.676</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -583,6 +646,19 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>Reports log-odds coefficients, odds ratios with CIs, Wald p-values, and McFadden's pseudo-R^2. The outcome must be binary (0/1 or two levels; the higher level is modeled as the event).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import logreg
+
+# The outcome has to be binary, so derive it first. Here a BDI total
+# above 10 marks a student at risk.
+df["risk"] = (df["bdi_sum"] &gt; 10).astype(int)
+
+print(logreg(df, outcome="risk", predictors=["bai_sum", "sex"]))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Logistic regression: risk ~ bai_sum + sex
+  McFadden pseudo-R^2 = 0.177, N = 1945
+
+             b     se     or  or_ci_low  or_ci_high       z      p
+const   -2.008  0.107  0.134      0.109       0.166 -18.744  0.000
+bai_sum  0.150  0.009  1.161      1.142       1.181  17.127  0.000
+sex_M    0.097  0.114  1.102      0.881       1.378   0.851  0.395</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -593,6 +669,15 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>RR = [a/(a+b)] / [c/(c+d)]. CI by the log method (Katz).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import riskratio
+
+# Both variables have to be binary, so derive them first.
+df["risk"] = (df["bdi_sum"] &gt; 10).astype(int)
+df["high_anxiety"] = (df["bai_sum"] &gt; 15).astype(int)
+
+print(riskratio(df, exposure="high_anxiety", outcome="risk",
+                exposed=1, positive=1))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Risk ratio (1 vs 0, outcome=1)
+  RR = 2.900, 95% CI [2.618, 3.212], p = 0.0000</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -603,6 +688,14 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>OR = ad / bc. CI by the log method (Woolf).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import oddsratio
+
+df["risk"] = (df["bdi_sum"] &gt; 10).astype(int)
+df["high_anxiety"] = (df["bai_sum"] &gt; 15).astype(int)
+
+print(oddsratio(df, exposure="high_anxiety", outcome="risk",
+                exposed=1, positive=1))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Odds ratio (1 vs 0, outcome=1)
+  OR = 9.022, 95% CI [6.777, 12.012], p = 0.0000</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -613,6 +706,15 @@ riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre><
 </summary>
 <div class="fn-body">
 <p>Reports the risk difference (attributable risk, AR = Re - Ru) with a Wald CI, the attributable risk percent among the exposed (ARP = (Re-Ru)/Re), the population attributable risk (PAR = Rt - Ru) and its percent (PAR% = (Rt-Ru)/Rt), and the number needed to treat/harm (NNT = 1/|AR|).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import attributable_risk
+
+df["risk"] = (df["bdi_sum"] &gt; 10).astype(int)
+df["high_anxiety"] = (df["bai_sum"] &gt; 15).astype(int)
+
+print(attributable_risk(df, exposure="high_anxiety", outcome="risk",
+                        exposed=1, positive=1))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Attributable risk (1 vs 0, outcome=1)
+  AR (risk difference) = 0.5000, 95% CI [0.4477, 0.5523]
+  ARP (exposed) = 65.5%   PAR = 0.0777   PAR% = 22.8%   NNT = 2.0</pre></div>
 </div>
 </details>
   </div>
@@ -667,6 +769,38 @@ print(riskratio(df, exposure="high_anxiety", outcome="depressed",
 <h5>Parameters</h5>
 <dl class='params'><dt><code>data</code></dt><dd>DataFrame (rows = respondents, cols = items) or 2D array.</dd><dt><code>keys</code></dt><dd>optional sequence of +1/-1 to reverse-score items before analysis.</dd><dt><code>conf</code></dt><dd>confidence level for the Feldt (1965) interval on raw alpha.</dd></dl>
 <p>Returns a Result with raw_alpha, std_alpha, the Feldt CI, mean inter-item correlation, and a per-item table (corrected item-total r and alpha-if-dropped).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import alpha
+
+# Reliability is computed over the items, not the total score.
+bdi_items = df[[f"bdi_{i}" for i in range(1, 22)]]
+
+a = alpha(bdi_items)
+print(a)</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Reliability analysis (Cronbach's alpha), 21 items, n = 1905
+  raw_alpha = 0.895   std_alpha = 0.897   mean_r = 0.293
+  95% CI (Feldt) [0.888, 0.901]
+
+        r_item_total  alpha_if_dropped   mean     sd
+bdi_1          0.597             0.888  0.245  0.532
+bdi_2          0.451             0.892  0.543  0.686
+bdi_3          0.534             0.890  0.297  0.574
+bdi_4          0.561             0.889  0.369  0.583
+bdi_5          0.496             0.890  0.488  0.605
+bdi_6          0.431             0.892  0.162  0.508
+bdi_7          0.597             0.887  0.381  0.693
+bdi_8          0.516             0.890  0.785  0.722
+bdi_9          0.366             0.894  0.073  0.319
+bdi_10         0.453             0.892  0.343  0.691
+bdi_11         0.466             0.891  0.543  0.690
+bdi_12         0.544             0.889  0.429  0.616
+bdi_13         0.545             0.889  0.457  0.785
+bdi_14         0.585             0.888  0.305  0.667
+bdi_15         0.603             0.887  0.564  0.688
+bdi_16         0.452             0.892  0.855  0.778
+bdi_17         0.536             0.889  0.430  0.640
+bdi_18         0.476             0.891  0.531  0.708
+bdi_19         0.518             0.890  0.753  0.802
+bdi_20         0.569             0.888  0.524  0.686
+bdi_21         0.445             0.892  0.136  0.449</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -677,6 +811,19 @@ print(riskratio(df, exposure="high_anxiety", outcome="depressed",
 </summary>
 <div class="fn-body">
 <p>No further description.</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import kmo
+
+bdi_items = df[[f"bdi_{i}" for i in range(1, 22)]]
+
+r = kmo(bdi_items)
+print(f"overall KMO = {r.values['overall']:.3f}")
+print(r.table.head())</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>overall KMO = 0.942
+            kmo
+bdi_1  0.945969
+bdi_2  0.951911
+bdi_3  0.930257
+bdi_4  0.946860
+bdi_5  0.950581</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -687,6 +834,12 @@ print(riskratio(df, exposure="high_anxiety", outcome="depressed",
 </summary>
 <div class="fn-body">
 <p>No further description.</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import bartlett
+
+bdi_items = df[[f"bdi_{i}" for i in range(1, 22)]]
+
+print(bartlett(bdi_items))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Bartlett's test of sphericity
+  chi2 = 11585.607, p = 0</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -701,6 +854,28 @@ rotation : None, 'varimax', 'promax' (default), 'oblimin', 'quartimax',
            'oblimax', 'quartimin', 'equamax' — oblique rotations also return
            the factor correlation matrix (phi).</pre>
 <p>Returns loadings, communalities, uniquenesses, eigenvalues, and the variance explained per factor (SS loadings, proportion, cumulative).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import efa
+
+# The first eight BDI items, asking for two factors.
+items = df[[f"bdi_{i}" for i in range(1, 9)]]
+
+print(efa(items, n_factors=2, rotation="promax"))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>Exploratory factor analysis (minres, rotation=promax), 2 factors
+
+Loadings:
+          F1     F2
+bdi_1 -0.076  1.045
+bdi_2  0.480  0.069
+bdi_3  0.697 -0.044
+bdi_4  0.433  0.159
+bdi_5  0.645 -0.083
+bdi_6  0.402  0.089
+bdi_7  0.646  0.065
+bdi_8  0.596 -0.067
+
+Variance explained:
+    ss_loadings  prop_var  cum_var
+F1        2.260     0.283    0.283
+F2        1.147     0.143    0.426</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -711,6 +886,17 @@ rotation : None, 'varimax', 'promax' (default), 'oblimin', 'quartimax',
 </summary>
 <div class="fn-body">
 <p>Returns the parameter table (unstandardized and standardized estimates, SE, z, p) and the common fit indices: chi2, df, p, CFI, TLI, RMSEA, SRMR, plus AIC/BIC.</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import cfa
+
+# lavaan model syntax, so a specification moves over from R unchanged.
+model = """
+visual  =~ x1 + x2 + x3
+textual =~ x4 + x5 + x6
+speed   =~ x7 + x8 + x9
+"""
+fit = cfa(model, data)
+fit.values["fit"]        # chi2, df, cfi, tli, rmsea
+fit.values["loadings"]   # standardized loadings</pre></div>
 </div>
 </details>
   </div>
@@ -768,6 +954,12 @@ fit.values["loadings"]   # standardized loadings</pre></div>
 </summary>
 <div class="fn-body">
 <p>No further description.</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import ttest, anova
+from psyreport import report
+
+print(report(ttest(df, dv="bdi_sum", group="sex")))
+print(report(anova(df, dv="bdi_sum", group="country")))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>t(1540.0) = -2.52, p = .012, d = -.12.
+F(2, 1946) = 8.85, p &lt; .001, η² = .01.</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -778,6 +970,23 @@ fit.values["loadings"]   # standardized loadings</pre></div>
 </summary>
 <div class="fn-body">
 <p>Falls back to a LaTeX comment with the APA sentence for inline-only results (t-test, correlations text, etc.).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import corr_matrix
+from psyreport import to_latex
+
+cm = corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"])
+print(to_latex(cm, caption="Correlations among study variables"))</pre></div><div class="code out"><div class="code-label"><span>Output</span></div><pre>\begin{table}[htbp]
+\centering
+\caption{Correlations among study variables}
+\begin{tabular}{llll}
+\toprule
+ &amp; age &amp; bdi\_sum &amp; bai\_sum \\
+\midrule
+age &amp; 1 &amp; -0.02 &amp; -0.04 \\
+bdi\_sum &amp; -0.02 &amp; 1 &amp; 0.60*** \\
+bai\_sum &amp; -0.04 &amp; 0.60*** &amp; 1 \\
+\bottomrule
+\end{tabular}
+\end{table}</pre></div>
 </div>
 </details>
 <details class="fn">
@@ -788,6 +997,12 @@ fit.values["loadings"]   # standardized loadings</pre></div>
 </summary>
 <div class="fn-body">
 <p>Requires python-docx (imported lazily).</p>
+<h5>Example</h5><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import corr_matrix
+from psyreport import to_docx
+
+cm = corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"])
+to_docx(cm, "correlations.docx", caption="Correlations among study variables")
+# returns the path it wrote</pre></div>
 </div>
 </details>
   </div>
@@ -874,7 +1089,7 @@ https://doi.org/10.1590/0102.3772e36412</pre></div>
     <p style="margin-top:0.75rem;">
       This page is generated from the installed packages, and the output shown in
       the examples is produced by running them.
-      Last updated <time datetime="2026-07-25T19:39:55Z">25 July 2026</time>.
+      Last updated <time datetime="2026-07-25T20:43:42Z">25 July 2026</time>.
     </p>
   </footer>
 

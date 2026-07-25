@@ -129,11 +129,198 @@ bdi = df[[f"bdi_{i}" for i in range(1, 22)]]
 """
 
 
+# One example per exported function, executed at build time. Where a function
+# needs a variable the dataset does not already carry, the example derives it
+# in full rather than assuming it, because that derivation is usually the part
+# a reader gets stuck on.
+FUNCTION_EXAMPLES = {
+    "load_mapfre": '''
+        from psystats import load_mapfre
+
+        df = load_mapfre()
+        print(df.shape)
+        print(df[["country", "sex", "age", "bdi_sum", "bai_sum"]].head())
+    ''',
+    "describe": '''
+        from psystats import describe
+
+        print(describe(df, columns=["age", "bdi_sum", "bai_sum"]))
+    ''',
+    "freq": '''
+        from psystats import freq
+
+        print(freq(df, "bdi_class", sort=False))
+    ''',
+    "corr_matrix": '''
+        from psystats import corr_matrix
+
+        print(corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"]))
+    ''',
+    "table1": '''
+        from psystats import table1
+
+        print(table1(df, group="country", columns=["age", "sex", "bdi_sum"]))
+    ''',
+    "ttest": '''
+        from psystats import ttest
+
+        print(ttest(df, dv="bdi_sum", group="sex"))
+    ''',
+    "anova": '''
+        from psystats import anova
+
+        print(anova(df, dv="bdi_sum", group="country"))
+    ''',
+    "chisq": '''
+        from psystats import chisq
+
+        print(chisq(df, row="sex", col="bdi_class"))
+    ''',
+    "linreg": '''
+        from psystats import linreg
+
+        print(linreg(df, outcome="bdi_sum", predictors=["bai_sum", "age"]))
+    ''',
+    "logreg": '''
+        from psystats import logreg
+
+        # The outcome has to be binary, so derive it first. Here a BDI total
+        # above 10 marks a student at risk.
+        df["risk"] = (df["bdi_sum"] > 10).astype(int)
+
+        print(logreg(df, outcome="risk", predictors=["bai_sum", "sex"]))
+    ''',
+    "riskratio": '''
+        from psystats import riskratio
+
+        # Both variables have to be binary, so derive them first.
+        df["risk"] = (df["bdi_sum"] > 10).astype(int)
+        df["high_anxiety"] = (df["bai_sum"] > 15).astype(int)
+
+        print(riskratio(df, exposure="high_anxiety", outcome="risk",
+                        exposed=1, positive=1))
+    ''',
+    "oddsratio": '''
+        from psystats import oddsratio
+
+        df["risk"] = (df["bdi_sum"] > 10).astype(int)
+        df["high_anxiety"] = (df["bai_sum"] > 15).astype(int)
+
+        print(oddsratio(df, exposure="high_anxiety", outcome="risk",
+                        exposed=1, positive=1))
+    ''',
+    "attributable_risk": '''
+        from psystats import attributable_risk
+
+        df["risk"] = (df["bdi_sum"] > 10).astype(int)
+        df["high_anxiety"] = (df["bai_sum"] > 15).astype(int)
+
+        print(attributable_risk(df, exposure="high_anxiety", outcome="risk",
+                                exposed=1, positive=1))
+    ''',
+    "alpha": '''
+        from psymetrics import alpha
+
+        # Reliability is computed over the items, not the total score.
+        bdi_items = df[[f"bdi_{i}" for i in range(1, 22)]]
+
+        a = alpha(bdi_items)
+        print(a)
+    ''',
+    "kmo": '''
+        from psymetrics import kmo
+
+        bdi_items = df[[f"bdi_{i}" for i in range(1, 22)]]
+
+        r = kmo(bdi_items)
+        print(f"overall KMO = {r.values['overall']:.3f}")
+        print(r.table.head())
+    ''',
+    "bartlett": '''
+        from psymetrics import bartlett
+
+        bdi_items = df[[f"bdi_{i}" for i in range(1, 22)]]
+
+        print(bartlett(bdi_items))
+    ''',
+    "efa": '''
+        from psymetrics import efa
+
+        # The first eight BDI items, asking for two factors.
+        items = df[[f"bdi_{i}" for i in range(1, 9)]]
+
+        print(efa(items, n_factors=2, rotation="promax"))
+    ''',
+    "cfa": '''
+        from psymetrics import cfa
+
+        # lavaan model syntax, so a specification moves over from R unchanged.
+        model = """
+        visual  =~ x1 + x2 + x3
+        textual =~ x4 + x5 + x6
+        speed   =~ x7 + x8 + x9
+        """
+        fit = cfa(model, data)
+        fit.values["fit"]        # chi2, df, cfi, tli, rmsea
+        fit.values["loadings"]   # standardized loadings
+    ''',
+    "report": '''
+        from psystats import ttest, anova
+        from psyreport import report
+
+        print(report(ttest(df, dv="bdi_sum", group="sex")))
+        print(report(anova(df, dv="bdi_sum", group="country")))
+    ''',
+    "to_latex": '''
+        from psystats import corr_matrix
+        from psyreport import to_latex
+
+        cm = corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"])
+        print(to_latex(cm, caption="Correlations among study variables"))
+    ''',
+    "to_docx": '''
+        from psystats import corr_matrix
+        from psyreport import to_docx
+
+        cm = corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"])
+        to_docx(cm, "correlations.docx", caption="Correlations among study variables")
+        # returns the path it wrote
+    ''',
+}
+
+# cfa needs the optional semopy extra and to_docx writes a file, so neither is
+# executed. They are shown as code, never with invented output.
+NO_RUN = {"cfa", "to_docx"}
+
+# Filled by resolve_function_examples(); name -> {"code": str, "out": str|None}
+FN_EX: dict = {}
+
+
 def run(code: str) -> str:
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         exec(textwrap.dedent(code), NS)
     return buf.getvalue().rstrip("\n")
+
+
+# Re-applied after every example. Some of them legitimately rebind `df` (the
+# load_mapfre example does), which would drop the columns the prelude derived
+# and break every example that runs afterwards.
+REPAIR = '''
+if "depressed" not in df.columns:
+    df["depressed"] = (df["bdi_sum"] >= 14).astype(int)
+    df["high_anxiety"] = (df["bai_sum"] >= 16).astype(int)
+    bdi = df[[f"bdi_{i}" for i in range(1, 22)]]
+'''
+
+
+def resolve_function_examples() -> None:
+    """Execute each function's example once, keeping code and real output."""
+    for name, code in FUNCTION_EXAMPLES.items():
+        code = textwrap.dedent(code).strip("\n")
+        out = None if name in NO_RUN else run(code)
+        exec(textwrap.dedent(REPAIR), NS)
+        FN_EX[name] = {"code": code, "out": out}
 
 
 def esc(s: str) -> str:
@@ -227,6 +414,13 @@ def function_card(mod, name: str) -> str:
     analogue = R_ANALOGUE.get(name, "")
     r_html = (f'<span class="fn-r" title="R analogue">{esc(analogue)}</span>'
               if analogue else "")
+    ex = FN_EX.get(name)
+    ex_html = ""
+    if ex:
+        ex_html = "<h5>Example</h5>" + code_block(ex["code"])
+        if ex["out"]:
+            ex_html += ('<div class="code out"><div class="code-label">'
+                        f'<span>Output</span></div><pre>{esc(ex["out"])}</pre></div>')
     return f"""<details class="fn">
 <summary>
   <span class="fn-name"><code>{esc(name)}{esc(sig)}</code></span>
@@ -235,6 +429,7 @@ def function_card(mod, name: str) -> str:
 </summary>
 <div class="fn-body">
 {docstring_html(fn)}
+{ex_html}
 </div>
 </details>"""
 
@@ -608,8 +803,14 @@ def function_card_md(mod, name: str) -> str:
     summary = (inspect.getdoc(fn) or "").split("\n\n")[0].replace("\n", " ").strip()
     analogue = R_ANALOGUE.get(name, "")
     r_note = f"\nR analogue: `{analogue}`\n" if analogue else ""
+    ex = FN_EX.get(name)
+    ex_md = ""
+    if ex:
+        ex_md = f"\n**Example**\n\n```python\n{ex['code']}\n```\n"
+        if ex["out"]:
+            ex_md += f"\n```text\n{ex['out']}\n```\n"
     return (f"<details>\n<summary><code>{name}{sig}</code> — {summary}</summary>\n\n"
-            f"{docstring_md(fn)}\n{r_note}\n</details>")
+            f"{docstring_md(fn)}\n{ex_md}{r_note}\n</details>")
 
 
 def package_section_md(pkg: dict, index: int, ex_md: str) -> str:
@@ -1037,6 +1238,7 @@ License: MIT
 
 def main() -> None:
     run(PRELUDE)
+    resolve_function_examples()
 
     resolved = resolve_examples()
     examples = [examples_html(resolved[p["name"]]) for p in PACKAGES]
