@@ -2,6 +2,24 @@
 
 All three packages are versioned together during initial development.
 
+## 0.1.3 — unreleased
+
+### psyreport 0.1.1
+- Declared `jinja2` as a dependency. `to_latex()` calls
+  `DataFrame.to_latex()`, which pandas routes through `Styler`, which imports
+  `jinja2`. Without it the call raised `ImportError`, so `to_latex()` was
+  broken for anyone whose environment did not already happen to provide
+  `jinja2` through another package.
+
+### Project
+- Added `.github/workflows/ci.yml`, which runs the suite on Python 3.10, 3.11,
+  and 3.12 for every push and pull request, and rebuilds the documentation
+  site. The README, `GITHUB_SETUP.md`, and the paper all described this
+  workflow, but it had never been added; its absence is why the `jinja2`
+  dependency above went unnoticed.
+- Added `.github/workflows/pages.yml` and `docs/`, the generated documentation
+  site published through GitHub Pages.
+
 ## 0.1.2 — 2026-07-25
 
 ### Documentation

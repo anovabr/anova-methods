@@ -1,0 +1,50 @@
+name: Tests
+
+# Runs the full suite for the three packages on every push and pull request.
+# The packages are installed from their own metadata rather than from a
+# requirements file, so a dependency that is declared incorrectly fails here
+# instead of failing for someone after `pip install`.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install the packages and the test runner
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e packages/psystats \
+                                -e packages/psymetrics \
+                                -e packages/psyreport
+          python -m pip install pytest
+
+      - name: Install the optional SEM engine
+        # semopy needs a build toolchain and is not available for every Python
+        # version. When it cannot be installed the SEM tests skip themselves,
+        # so a failure here must not fail the run.
+        continue-on-error: true
+        run: python -m pip install semopy
+
+      - name: Run the suite
+        run: pytest packages/ -q
+
+      - name: Build the documentation site
+        # The site executes its own examples, so this also checks that the
+        # documented output still matches what the packages produce.
+        run: python docs/build_site.py
