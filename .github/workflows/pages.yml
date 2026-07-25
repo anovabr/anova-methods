@@ -1,0 +1,76 @@
+name: Build and deploy documentation site
+
+# Rebuilds docs/index.html from the installed packages and publishes it to
+# GitHub Pages. Rebuilding on every push is what keeps the "last updated"
+# stamp on the page honest, and keeps the function reference in step with the
+# code it is generated from.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "docs/build_site.py"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deployment finish rather than cancelling it midway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the packages
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e packages/psystats \
+                                -e packages/psymetrics \
+                                -e packages/psyreport
+
+      - name: Build the site
+        run: python docs/build_site.py
+
+      - name: Check every exported function reached the page
+        run: |
+          python - <<'PY'
+          import psystats, psymetrics, psyreport, sys, pathlib
+          html = pathlib.Path("docs/index.html").read_text(encoding="utf-8")
+          missing = [
+              f"{m.__name__}.{f}"
+              for m in (psystats, psymetrics, psyreport)
+              for f in m.__all__
+              if f"<code>{f}(" not in html
+          ]
+          if missing:
+              sys.exit("missing from the generated page: " + ", ".join(missing))
+          print(f"all functions documented; {html.count('<details class=\"fn\">')} cards")
+          PY
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

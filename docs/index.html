@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ANOVA Methods — Python packages for psychological research</title>
+<meta name="description" content="Three Python packages covering the statistical analyses commonly reported in psychology: group comparison tables, inferential tests with effect sizes, regression, risk measures, reliability, factor analysis, and APA-7 output.">
+<style>
+:root {
+  --paper:#F4F6F3; --surface:#FFFFFF; --surface-2:#ECEFEA;
+  --ink:#0F1417; --ink-soft:#3A443F; --muted:#63706A; --rule:#D6DCD6;
+  --accent:#17594A; --accent-ink:#FFFFFF; --accent-dim:#DCE9E3;
+  --signal:#B5462F; --code-bg:#EDF0EC;
+  --display:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --step--1:0.815rem; --step-0:1rem; --step-1:1.2rem;
+  --step-2:1.5rem; --step-3:1.95rem; --step-5:3.4rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:#0D1114; --surface:#141A1D; --surface-2:#1B2226;
+    --ink:#E8EDE9; --ink-soft:#BFC9C3; --muted:#8A9791; --rule:#2A3431;
+    --accent:#2E9C7E; --accent-ink:#06120E; --accent-dim:#16332B;
+    --signal:#E0785C; --code-bg:#101619;
+  }
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--body); font-size:var(--step-0); line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.shell {
+  max-width:1180px; margin:0 auto; padding:0 1.25rem 5rem;
+  display:grid; grid-template-columns:1fr; gap:2.5rem;
+}
+@media (min-width:1000px) {
+  .shell { grid-template-columns:230px minmax(0,1fr); gap:3.5rem; padding-top:1rem; }
+}
+.hero { grid-column:1/-1; padding:3.25rem 0 2.25rem; border-bottom:2px solid var(--ink); }
+.eyebrow {
+  font-family:var(--mono); font-size:var(--step--1); letter-spacing:0.12em;
+  text-transform:uppercase; color:var(--accent); margin:0 0 1rem;
+}
+.hero h1 {
+  font-family:var(--display); font-weight:600;
+  font-size:clamp(2.3rem,5.5vw,var(--step-5)); line-height:1.05;
+  letter-spacing:-0.02em; margin:0 0 1.1rem; text-wrap:balance;
+}
+.hero .lede { font-size:var(--step-1); color:var(--ink-soft); max-width:62ch; margin:0 0 1.5rem; text-wrap:pretty; }
+.hero .meta { font-size:0.9rem; color:var(--muted); max-width:62ch; margin:0 0 1.5rem; }
+.badges { display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; }
+.badge {
+  font-family:var(--mono); font-size:0.74rem; border:1px solid var(--rule);
+  background:var(--surface); border-radius:2px; padding:0.2rem 0.55rem;
+  color:var(--ink-soft); display:inline-flex; gap:0.4rem; align-items:center;
+}
+.badge b { color:var(--accent); font-weight:700; }
+.badge.stamp { border-style:dashed; }
+.toc { align-self:start; }
+@media (min-width:1000px) {
+  .toc { position:sticky; top:1.5rem; max-height:calc(100vh - 3rem); overflow-y:auto; }
+}
+.toc h2 {
+  font-family:var(--mono); font-size:var(--step--1); text-transform:uppercase;
+  letter-spacing:0.1em; color:var(--muted); margin:0 0 0.85rem; font-weight:600;
+}
+.toc ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.12rem; }
+.toc a {
+  display:block; padding:0.3rem 0 0.3rem 0.75rem; border-left:2px solid var(--rule);
+  color:var(--ink-soft); text-decoration:none; font-size:0.9rem;
+}
+.toc a:hover { color:var(--accent); border-left-color:var(--accent); }
+.toc a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.toc .sub a { padding-left:1.6rem; font-size:0.83rem; color:var(--muted); }
+.toc .pkg a { font-weight:600; color:var(--ink); }
+main { min-width:0; display:flex; flex-direction:column; gap:3.25rem; }
+section { scroll-margin-top:1.5rem; }
+h2.sec {
+  font-family:var(--display); font-size:var(--step-3); line-height:1.15;
+  margin:0 0 0.5rem; letter-spacing:-0.01em; text-wrap:balance;
+}
+h3 {
+  font-family:var(--body); font-size:0.83rem; text-transform:uppercase;
+  letter-spacing:0.1em; color:var(--muted); margin:2rem 0 0.75rem; font-weight:700;
+}
+p { margin:0 0 1rem; max-width:68ch; text-wrap:pretty; }
+a { color:var(--accent); }
+.marker { display:flex; gap:3px; margin-bottom:0.9rem; }
+.marker i { width:13px; height:13px; border:1.5px solid var(--accent); border-radius:1px; display:block; }
+.marker i.on { background:var(--accent); }
+.pkg-head { display:flex; align-items:baseline; gap:0.75rem; flex-wrap:wrap; }
+.pkg-head code {
+  font-family:var(--mono); font-size:var(--step-2); color:var(--accent);
+  background:none; padding:0; font-weight:600;
+}
+.pkg-head .role { color:var(--muted); font-size:var(--step-0); }
+.analogue { color:var(--muted); font-size:0.9rem; }
+.analogue code { background:none; padding:0; color:var(--muted); }
+.callout {
+  background:var(--accent-dim); border-left:3px solid var(--accent);
+  padding:1.1rem 1.35rem; border-radius:0 3px 3px 0;
+}
+.callout p { margin:0; max-width:62ch; }
+.callout p + p { margin-top:0.6rem; }
+.callout strong { color:var(--accent); }
+.parts { display:grid; gap:1.25rem; grid-template-columns:1fr; margin-bottom:1.5rem; }
+@media (min-width:720px) { .parts { grid-template-columns:repeat(3,1fr); } }
+.part { background:var(--surface); border:1px solid var(--rule); border-radius:3px; padding:1.15rem 1.25rem; }
+.part .n {
+  font-family:var(--mono); font-size:0.74rem; color:var(--accent);
+  letter-spacing:0.08em; display:block; margin-bottom:0.4rem; font-weight:700;
+}
+.part h4 { margin:0 0 0.4rem; font-size:var(--step-0); font-weight:650; }
+.part p { margin:0; font-size:0.9rem; color:var(--ink-soft); }
+.code {
+  background:var(--code-bg); border:1px solid var(--rule); border-radius:3px;
+  margin:0 0 1rem; overflow:hidden;
+}
+.code pre {
+  margin:0; padding:1rem 1.1rem; overflow-x:auto; font-family:var(--mono);
+  font-size:0.845rem; line-height:1.6; tab-size:2;
+}
+.code.out pre { color:var(--ink-soft); }
+.code-label {
+  font-family:var(--mono); font-size:0.7rem; text-transform:uppercase;
+  letter-spacing:0.1em; color:var(--muted); padding:0.45rem 1.1rem;
+  border-bottom:1px solid var(--rule); display:flex; justify-content:space-between;
+  align-items:center; gap:1rem;
+}
+.copy {
+  font-family:var(--body); font-size:0.72rem; letter-spacing:0.04em;
+  background:transparent; border:1px solid var(--rule); color:var(--muted);
+  border-radius:2px; padding:0.15rem 0.5rem; cursor:pointer;
+}
+.copy:hover { color:var(--accent); border-color:var(--accent); }
+.copy:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+code { font-family:var(--mono); font-size:0.88em; background:var(--surface-2); padding:0.1em 0.34em; border-radius:2px; }
+
+/* ---- folding function cards ---------------------------------------- */
+.fn-controls { display:flex; gap:0.5rem; margin-bottom:0.85rem; }
+.fn-controls button {
+  font-family:var(--body); font-size:0.74rem; letter-spacing:0.04em;
+  background:transparent; border:1px solid var(--rule); color:var(--muted);
+  border-radius:2px; padding:0.25rem 0.7rem; cursor:pointer;
+}
+.fn-controls button:hover { color:var(--accent); border-color:var(--accent); }
+.fn-controls button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.fn-list { display:flex; flex-direction:column; gap:0.4rem; }
+details.fn {
+  background:var(--surface); border:1px solid var(--rule); border-radius:3px;
+  overflow:hidden;
+}
+details.fn summary {
+  cursor:pointer; padding:0.7rem 0.95rem; list-style:none;
+  display:grid; grid-template-columns:auto 1fr; gap:0.15rem 0.75rem;
+  align-items:baseline;
+}
+details.fn summary::-webkit-details-marker { display:none; }
+details.fn summary::before {
+  content:"+"; font-family:var(--mono); color:var(--accent); font-weight:700;
+  grid-row:1; grid-column:1; width:1ch; display:inline-block;
+}
+details.fn[open] summary::before { content:"\2212"; }
+details.fn summary:hover { background:var(--surface-2); }
+details.fn summary:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+.fn-name { grid-row:1; grid-column:2; }
+.fn-name code {
+  background:none; padding:0; color:var(--accent); font-weight:600; font-size:0.9rem;
+}
+.fn-sum { grid-row:2; grid-column:2; font-size:0.85rem; color:var(--muted); }
+.fn-r {
+  grid-row:1; grid-column:3; font-family:var(--mono); font-size:0.72rem;
+  color:var(--muted); white-space:nowrap; justify-self:end;
+}
+@media (max-width:640px) { .fn-r { display:none; } }
+.fn-body {
+  padding:0.2rem 0.95rem 1rem 2.1rem; border-top:1px solid var(--rule);
+  background:var(--paper);
+}
+.fn-body p { margin:0.75rem 0 0; font-size:0.92rem; max-width:66ch; }
+.fn-body h5 {
+  margin:1rem 0 0; font-family:var(--body); font-size:0.72rem;
+  text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); font-weight:700;
+}
+.fn-body dl.params { margin:0.4rem 0 0; display:grid; grid-template-columns:auto 1fr; gap:0.3rem 0.9rem; }
+.fn-body dl.params dt { font-family:var(--mono); font-size:0.82rem; }
+.fn-body dl.params dt code { background:none; padding:0; color:var(--accent); font-weight:600; }
+.fn-body dl.params dd { margin:0; font-size:0.9rem; color:var(--ink-soft); max-width:60ch; }
+@media (max-width:560px) {
+  .fn-body dl.params { grid-template-columns:1fr; gap:0.1rem; }
+  .fn-body dl.params dd { margin-bottom:0.5rem; }
+}
+.fn-body pre.doc-pre {
+  margin:0.75rem 0 0; font-family:var(--mono); font-size:0.8rem;
+  line-height:1.55; overflow-x:auto; color:var(--ink-soft);
+  background:var(--code-bg); border:1px solid var(--rule);
+  border-radius:3px; padding:0.7rem 0.85rem;
+}
+footer {
+  grid-column:1/-1; border-top:1px solid var(--rule); margin-top:1rem;
+  padding-top:1.5rem; color:var(--muted); font-size:0.85rem;
+}
+footer p { max-width:70ch; }
+@media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="hero">
+    <p class="eyebrow">Python packages for psychological research</p>
+    <h1>ANOVA Methods</h1>
+    <p class="lede">
+      Three packages covering the statistical analyses commonly reported in
+      psychology: descriptive and group comparison tables, inferential tests with
+      effect sizes, regression, risk measures, reliability and factor analysis, and
+      APA-7 formatted output. The interface is functional and modelled on the
+      equivalent R packages.
+    </p>
+    <p class="meta">
+      Maintained by Luis Anunciação, PhD — Pontifical Catholic University of Rio de
+      Janeiro (PUC-Rio) and University of Oregon.
+      ORCID <a href="https://orcid.org/0000-0001-5303-5782">0000-0001-5303-5782</a>.
+      Free and open under the MIT licence.
+      <a href="https://github.com/anovabr/anova-methods">Source on GitHub</a>.
+    </p>
+    <div class="badges">
+      <span class="badge">psystats <b>0.1.1</b></span>
+      <span class="badge">psymetrics <b>0.1.0</b></span>
+      <span class="badge">psyreport <b>0.1.0</b></span>
+      <span class="badge">Python <b>3.10+</b></span>
+      <span class="badge">MIT</span>
+      <span class="badge stamp">Last updated
+        <b><time datetime="2026-07-25T18:26:10Z">25 July 2026</time></b></span>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#install">Installation</a></li>
+      <li><a href="#dataset">The example dataset</a></li>
+      <li><a href="#example">A worked example</a></li>
+      <li><a href="#requiv">Equivalents in R</a></li>
+      <li class="pkg"><a href="#psystats">1 · psystats</a></li>
+      <li class="sub"><a href="#psystats-goal">Goal</a></li>
+      <li class="sub"><a href="#psystats-fn">Functions</a></li>
+      <li class="sub"><a href="#psystats-ex">Examples</a></li>
+      <li class="pkg"><a href="#psymetrics">2 · psymetrics</a></li>
+      <li class="sub"><a href="#psymetrics-goal">Goal</a></li>
+      <li class="sub"><a href="#psymetrics-fn">Functions</a></li>
+      <li class="sub"><a href="#psymetrics-ex">Examples</a></li>
+      <li class="pkg"><a href="#psyreport">3 · psyreport</a></li>
+      <li class="sub"><a href="#psyreport-goal">Goal</a></li>
+      <li class="sub"><a href="#psyreport-fn">Functions</a></li>
+      <li class="sub"><a href="#psyreport-ex">Examples</a></li>
+      <li><a href="#validation">Validation</a></li>
+      <li><a href="#citing">Citing</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="install">
+      <h2 class="sec">Installation</h2>
+      <p>The three packages are published on PyPI and can be installed together.</p>
+      <div class="code"><div class="code-label"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre>pip install psystats psymetrics psyreport</pre></div>
+      <div class="callout">
+        <p><strong>Notes for a first installation.</strong> Python 3.10 or newer is
+        required. If the <code>pip</code> command is not recognised, use
+        <code>python -m pip install …</code> instead.</p>
+        <p>Confirmatory factor analysis (<code>psymetrics.cfa</code>) depends on
+        <code>semopy</code>, which is kept as an optional extra so that the core
+        packages install without a compiler toolchain:
+        <code>pip install "psymetrics[sem]"</code>.</p>
+      </div>
+    </section>
+
+    <section id="dataset">
+      <h2 class="sec">The example dataset</h2>
+      <p>
+        A teaching dataset is bundled inside <code>psystats</code>, so the examples on
+        this page run without any download. It contains responses from 1,957
+        undergraduate students in Spain, Portugal, and Brazil on the Beck Depression
+        Inventory (<code>bdi_1</code> to <code>bdi_21</code>, <code>bdi_sum</code>,
+        <code>bdi_class</code>) and the Beck Anxiety Inventory (<code>bai_*</code>),
+        together with cyber-victimization, cyber-aggression, and emotion-regulation
+        scales, and the demographics <code>country</code>, <code>sex</code>, and
+        <code>age</code>.
+      </p>
+      <div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import load_mapfre
+
+df = load_mapfre()
+df.shape          # (1957, 94)</pre></div>
+      <p>
+        The data are described in Afonso Junior et al. (2020),
+        <em>Psicologia: Teoria e Pesquisa, 36</em>, e36412.
+      </p>
+    </section>
+
+    <section id="example">
+      <h2 class="sec">A worked example</h2>
+      <p>
+        Every function returns a result object. Printing it gives a summary in the
+        style R would produce, <code>.values</code> holds the raw numbers,
+        <code>.table</code> holds the result table, and passing it to
+        <code>psyreport.report()</code> gives APA-7 text.
+      </p>
+      <div class="parts">
+        <div class="part">
+          <span class="n">Line 1</span>
+          <h4>Load the data</h4>
+          <p><code>load_mapfre()</code> returns a pandas DataFrame with 1,957 rows and 94 columns.</p>
+        </div>
+        <div class="part">
+          <span class="n">Line 2</span>
+          <h4>Run the analysis</h4>
+          <p><code>table1()</code> compares each listed variable across the levels of <code>country</code>.</p>
+        </div>
+        <div class="part">
+          <span class="n">Line 3</span>
+          <h4>Print the result</h4>
+          <p>The result object prints the table, the test used per variable, and its p value.</p>
+        </div>
+      </div>
+      <div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import load_mapfre, table1
+
+df = load_mapfre()
+print(table1(df, group="country", columns=["age", "sex", "bdi_sum"]))</pre></div>
+<div class="code out"><div class="code-label"><span>Output</span></div><pre>Table 1 by country (n groups = 3)
+variable level                SPAIN             PORTUGAL               BRAZIL           test     p
+     age       21.00 [20.00, 23.00] 20.00 [19.00, 22.00] 21.00 [20.00, 23.00] Kruskal-Wallis &lt;.001
+     sex     F          825 (68.2%)          223 (52.3%)          166 (52.7%)     Chi-square &lt;.001
+             M          384 (31.8%)          203 (47.7%)          149 (47.3%)                     
+ bdi_sum         7.00 [3.00, 12.00]   7.00 [4.00, 12.00]   9.50 [5.00, 15.00] Kruskal-Wallis &lt;.001</pre></div>
+      <p>
+        <code>table1()</code> selects the test per variable. Each group is screened for
+        normality with Shapiro-Wilk. Continuous variables are compared with a Welch t
+        test or a one-way ANOVA when normal, and with Mann-Whitney or Kruskal-Wallis
+        when not; categorical variables are compared with Fisher's exact test for a
+        2 × 2 table and chi-square otherwise. Normal variables are summarised as
+        <em>M (SD)</em>, non-normal ones as median [Q1, Q3], and categorical ones as
+        <em>n</em> (%) within each group.
+      </p>
+      <div class="callout">
+        <p><strong>Pass <code>columns</code> explicitly.</strong> When it is omitted,
+        every remaining column is compared, which on this dataset means all 93 of them.</p>
+      </div>
+    </section>
+
+    <section id="requiv">
+      <h2 class="sec">Equivalents in R</h2>
+      <p>
+        Function and argument names follow the R packages that perform the same
+        analyses, so a specification written in R generally transfers with little
+        change. The R analogue for each function is shown on the right of its entry
+        in the reference below.
+      </p>
+      <div class="code"><div class="code-label"><span>R and Python</span><button class="copy" type="button">Copy</button></div><pre># R                              # Python
+library(psych)                   from psymetrics import alpha
+alpha(bdi)                       alpha(bdi)
+
+library(arsenal)                 from psystats import table1
+tableby(country ~ ., df)         table1(df, group="country")
+
+library(epitools)                from psystats import riskratio
+riskratio(x)                     riskratio(df, exposure=..., outcome=...)</pre></div>
+    </section>
+
+<section id="psystats">
+  <div class="marker" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+  <div class="pkg-head">
+    <h2 class="sec"><code>psystats</code></h2>
+    <span class="role">statistics and biostatistics</span>
+  </div>
+
+  <h3 id="psystats-goal">Goal</h3>
+  <p>To cover the analyses that appear in most quantitative psychology papers: descriptive statistics and group comparison tables, the common inferential tests reported with their effect sizes, linear and logistic regression, and the epidemiological risk measures used in risk-factor work.</p>
+  <p class="analogue">R analogues: <code>arsenal, tableone, epitools, apaTables</code></p>
+
+  <h3 id="psystats-fn">Functions (13)</h3>
+  <p>Each entry is collapsed. Select one to read its full description, taken
+     directly from the function's documentation.</p>
+  <div class="fn-controls">
+    <button type="button" data-expand="all" data-scope="#psystats-fnlist">Expand all</button>
+    <button type="button" data-expand="none" data-scope="#psystats-fnlist">Collapse all</button>
+  </div>
+  <div class="fn-list" id="psystats-fnlist">
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>load_mapfre()</code></span>
+  <span class="fn-sum">Load the MAPFRE depression and anxiety dataset (returns a DataFrame).</span>
+  <span class="fn-r" title="R analogue">data()</span>
+</summary>
+<div class="fn-body">
+<p>A representative sample of 1,957 undergraduate students in Spain, Portugal, and Brazil, with the Beck Depression Inventory (<code>bdi_1</code>–<code>bdi_21</code>, <code>bdi_sum</code>, <code>bdi_class</code>), the Beck Anxiety Inventory (<code>bai_1</code>–<code>bai_21</code>, <code>bai_sum</code>, <code>bai_class</code>), cyber-victimization/aggression and emotion- regulation scales, and demographics (<code>country</code>, <code>sex</code>, <code>age</code>, <code>grado</code>).</p>
+<h5>Source</h5>
+<p>Afonso Junior, A., Portugal, A. C. d. A., Landeira-Fernandez, J., Bullón, F. F., dos Santos, E. J. R., de Vilhena, J., &amp; Anunciação, L. (2020). Sintomas de Depressão e Ansiedade em uma Amostra Representativa de Universitários Espanhóis, Portugueses e Brasileiros [Depression and anxiety symptoms in a representative sample of undergraduate students in Spain, Portugal, and Brazil]. Psicologia: Teoria e Pesquisa, 36, Article e36412. <a href="https://doi.org/10.1590/0102.3772e36412">https://doi.org/10.1590/0102.3772e36412</a></p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>describe(df, columns=None)</code></span>
+  <span class="fn-sum">Numeric descriptives per column: n, mean, sd, median, min, max, skew, kurtosis.</span>
+  <span class="fn-r" title="R analogue">psych::describe</span>
+</summary>
+<div class="fn-body">
+<p>No further description.</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>freq(df, column, sort=True)</code></span>
+  <span class="fn-sum">Frequency table for one variable: count, percent, cumulative percent.</span>
+  <span class="fn-r" title="R analogue">table()</span>
+</summary>
+<div class="fn-body">
+<p>No further description.</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>corr_matrix(df, columns=None, method='pearson')</code></span>
+  <span class="fn-sum">Correlation matrix with p-values and APA significance stars (apaTables style).</span>
+  <span class="fn-r" title="R analogue">apaTables</span>
+</summary>
+<div class="fn-body">
+<p>method: 'pearson' or 'spearman'. Returns r, p, and n matrices plus a display table with stars (* p&lt;.05, ** p&lt;.01, *** p&lt;.001).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>table1(df, group, columns=None, conf=0.95)</code></span>
+  <span class="fn-sum">Group-comparison 'Table 1' with automatic per-variable test selection.</span>
+  <span class="fn-r" title="R analogue">arsenal, tableone</span>
+</summary>
+<div class="fn-body">
+<p>Continuous, normal, 2 groups -&gt; Welch t-test; &gt;2 groups -&gt; one-way ANOVA. Continuous, non-normal -&gt; Mann-Whitney (2) / Kruskal-Wallis (&gt;2). Categorical -&gt; chi-square (or Fisher exact for 2x2).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>ttest(df, dv, group=None, paired=False, equal_var=False, conf=0.95)</code></span>
+  <span class="fn-sum">Two-group or paired t-test with Cohen's d.</span>
+  <span class="fn-r" title="R analogue">t.test</span>
+</summary>
+<div class="fn-body">
+<p>Long form: ttest(df, dv="score", group="cond"). Paired: pass group with exactly two levels and paired=True (matched by row order within each level after dropping NAs). Cohen's d uses the pooled SD (independent) or SD of differences (paired).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>anova(df, dv, group)</code></span>
+  <span class="fn-sum">One-way ANOVA with eta squared and omega squared.</span>
+  <span class="fn-r" title="R analogue">aov</span>
+</summary>
+<div class="fn-body">
+<p>No further description.</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>chisq(df, row, col, correction=False)</code></span>
+  <span class="fn-sum">Chi-square test of independence with Cramer's V.</span>
+  <span class="fn-r" title="R analogue">chisq.test</span>
+</summary>
+<div class="fn-body">
+<p>No further description.</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>linreg(df, outcome, predictors, conf=0.95)</code></span>
+  <span class="fn-sum">Ordinary least squares regression.</span>
+  <span class="fn-r" title="R analogue">lm</span>
+</summary>
+<div class="fn-body">
+<p>Reports coefficients with CIs and p-values, standardized betas, R^2 and adjusted R^2, and the overall F test. Categorical predictors are dummy-coded (first level as reference).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>logreg(df, outcome, predictors, conf=0.95)</code></span>
+  <span class="fn-sum">Logistic regression.</span>
+  <span class="fn-r" title="R analogue">glm</span>
+</summary>
+<div class="fn-body">
+<p>Reports log-odds coefficients, odds ratios with CIs, Wald p-values, and McFadden's pseudo-R^2. The outcome must be binary (0/1 or two levels; the higher level is modeled as the event).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>riskratio(df, exposure, outcome, exposed=None, positive=None, conf=0.95)</code></span>
+  <span class="fn-sum">Risk (incidence) ratio for a 2x2 table, epitools::riskratio style.</span>
+  <span class="fn-r" title="R analogue">epitools::riskratio</span>
+</summary>
+<div class="fn-body">
+<p>RR = [a/(a+b)] / [c/(c+d)]. CI by the log method (Katz).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>oddsratio(df, exposure, outcome, exposed=None, positive=None, conf=0.95)</code></span>
+  <span class="fn-sum">Odds ratio for a 2x2 table, epitools::oddsratio (Wald) style.</span>
+  <span class="fn-r" title="R analogue">epitools::oddsratio</span>
+</summary>
+<div class="fn-body">
+<p>OR = ad / bc. CI by the log method (Woolf).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>attributable_risk(df, exposure, outcome, exposed=None, positive=None, conf=0.95)</code></span>
+  <span class="fn-sum">Attributable-risk family for a 2x2 cohort table.</span>
+  <span class="fn-r" title="R analogue">epitools</span>
+</summary>
+<div class="fn-body">
+<p>Reports the risk difference (attributable risk, AR = Re - Ru) with a Wald CI, the attributable risk percent among the exposed (ARP = (Re-Ru)/Re), the population attributable risk (PAR = Rt - Ru) and its percent (PAR% = (Rt-Ru)/Rt), and the number needed to treat/harm (NNT = 1/|AR|).</p>
+</div>
+</details>
+  </div>
+
+  <h3 id="psystats-ex">Examples</h3>
+<p>Linear regression. Standardized coefficients appear in the <code>beta</code> column beside the unstandardized <code>b</code>.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import linreg
+
+print(linreg(df, outcome="bdi_sum", predictors=["bai_sum", "age"]))</pre></div>
+<div class="code out"><div class="code-label"><span>Output</span></div><pre>Linear regression: bdi_sum ~ bai_sum + age
+  R^2 = 0.364, adj R^2 = 0.363, F(2, 1918) = 549.056, p = 2.896e-189, N = 1921
+
+             b     se  ci_low  ci_high   beta       t      p
+const    4.008  0.820   2.399    5.617  0.000   4.885  0.000
+bai_sum  0.579  0.017   0.544    0.613  0.604  33.123  0.000
+age      0.015  0.037  -0.057    0.087  0.008   0.418  0.676</pre></div><p>Risk measures for a 2 × 2 table. <code>exposed</code> and <code>positive</code> name the level counted as exposed and as the event.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import riskratio
+
+print(riskratio(df, exposure="high_anxiety", outcome="depressed",
+                exposed=1, positive=1))</pre></div>
+<div class="code out"><div class="code-label"><span>Output</span></div><pre>Risk ratio (1 vs 0, outcome=1)
+  RR = 4.232, 95% CI [3.651, 4.904], p = 0.0000</pre></div>
+</section>
+
+<section id="psymetrics">
+  <div class="marker" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+  <div class="pkg-head">
+    <h2 class="sec"><code>psymetrics</code></h2>
+    <span class="role">reliability and latent variables</span>
+  </div>
+
+  <h3 id="psymetrics-goal">Goal</h3>
+  <p>To cover scale construction and validation: how reliable a set of items is, whether the correlation matrix is suitable for factoring, what factor structure the items show, and whether a hypothesised structure fits the data.</p>
+  <p class="analogue">R analogues: <code>psych, lavaan</code></p>
+
+  <h3 id="psymetrics-fn">Functions (5)</h3>
+  <p>Each entry is collapsed. Select one to read its full description, taken
+     directly from the function's documentation.</p>
+  <div class="fn-controls">
+    <button type="button" data-expand="all" data-scope="#psymetrics-fnlist">Expand all</button>
+    <button type="button" data-expand="none" data-scope="#psymetrics-fnlist">Collapse all</button>
+  </div>
+  <div class="fn-list" id="psymetrics-fnlist">
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>alpha(data, keys=None, conf=0.95)</code></span>
+  <span class="fn-sum">Cronbach's alpha and item statistics, like psych::alpha.</span>
+  <span class="fn-r" title="R analogue">psych::alpha</span>
+</summary>
+<div class="fn-body">
+<h5>Parameters</h5>
+<dl class='params'><dt><code>data</code></dt><dd>DataFrame (rows = respondents, cols = items) or 2D array.</dd><dt><code>keys</code></dt><dd>optional sequence of +1/-1 to reverse-score items before analysis.</dd><dt><code>conf</code></dt><dd>confidence level for the Feldt (1965) interval on raw alpha.</dd></dl>
+<p>Returns a Result with raw_alpha, std_alpha, the Feldt CI, mean inter-item correlation, and a per-item table (corrected item-total r and alpha-if-dropped).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>kmo(data)</code></span>
+  <span class="fn-sum">Kaiser-Meyer-Olkin sampling adequacy (overall and per item).</span>
+  <span class="fn-r" title="R analogue">psych::KMO</span>
+</summary>
+<div class="fn-body">
+<p>No further description.</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>bartlett(data)</code></span>
+  <span class="fn-sum">Bartlett's test of sphericity (H0: correlation matrix is identity).</span>
+  <span class="fn-r" title="R analogue">psych::cortest.bartlett</span>
+</summary>
+<div class="fn-body">
+<p>No further description.</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>efa(data, n_factors, method='minres', rotation='promax')</code></span>
+  <span class="fn-sum">Exploratory factor analysis with selectable estimator and rotation.</span>
+  <span class="fn-r" title="R analogue">psych::fa</span>
+</summary>
+<div class="fn-body">
+<pre class='doc-pre'>method   : 'minres' (default), 'ml' (maximum likelihood), or 'principal'.
+rotation : None, 'varimax', 'promax' (default), 'oblimin', 'quartimax',
+           'oblimax', 'quartimin', 'equamax' — oblique rotations also return
+           the factor correlation matrix (phi).</pre>
+<p>Returns loadings, communalities, uniquenesses, eigenvalues, and the variance explained per factor (SS loadings, proportion, cumulative).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>cfa(model, data, standardized=True)</code></span>
+  <span class="fn-sum">Fit a confirmatory factor / structural model from lavaan-style syntax.</span>
+  <span class="fn-r" title="R analogue">lavaan::cfa</span>
+</summary>
+<div class="fn-body">
+<p>Returns the parameter table (unstandardized and standardized estimates, SE, z, p) and the common fit indices: chi2, df, p, CFI, TLI, RMSEA, SRMR, plus AIC/BIC.</p>
+</div>
+</details>
+  </div>
+
+  <h3 id="psymetrics-ex">Examples</h3>
+<p>Reliability and the two standard factorability checks, run on the 21 BDI items.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import alpha, kmo, bartlett
+
+bdi = df[[f"bdi_{i}" for i in range(1, 22)]]
+
+print(f"raw alpha   = {alpha(bdi).values['raw_alpha']:.3f}")
+print(f"overall KMO = {kmo(bdi).values['overall']:.3f}")
+print(bartlett(bdi))</pre></div>
+<div class="code out"><div class="code-label"><span>Output</span></div><pre>raw alpha   = 0.895
+overall KMO = 0.942
+Bartlett's test of sphericity
+  chi2 = 11585.607, p = 0</pre></div><p>Confirmatory factor analysis. The model is written in lavaan syntax, so a specification transfers from R unchanged. This function requires the <code>sem</code> extra, and so is shown here without output.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psymetrics import cfa
+
+model = """
+visual  =~ x1 + x2 + x3
+textual =~ x4 + x5 + x6
+speed   =~ x7 + x8 + x9
+"""
+fit = cfa(model, data)
+fit.values["fit"]        # chi2, df, cfi, tli, rmsea
+fit.values["loadings"]   # standardized loadings</pre></div>
+</section>
+
+<section id="psyreport">
+  <div class="marker" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+  <div class="pkg-head">
+    <h2 class="sec"><code>psyreport</code></h2>
+    <span class="role">APA-7 reporting</span>
+  </div>
+
+  <h3 id="psyreport-goal">Goal</h3>
+  <p>To render a result produced by either of the other two packages as APA-7 text, a LaTeX table, or a Word document. Reporting is kept separate from computation, so one result can feed all three outputs without being recomputed. Dispatch is by the result's <code>kind</code> tag, which is why psyreport renders a result without importing the package that produced it. It covers 15 result kinds: everything psystats emits, and all of psymetrics except the <code>kmo</code> and <code>bartlett</code> factorability checks.</p>
+  <p class="analogue">R analogues: <code>apaTables, report</code></p>
+
+  <h3 id="psyreport-fn">Functions (3)</h3>
+  <p>Each entry is collapsed. Select one to read its full description, taken
+     directly from the function's documentation.</p>
+  <div class="fn-controls">
+    <button type="button" data-expand="all" data-scope="#psyreport-fnlist">Expand all</button>
+    <button type="button" data-expand="none" data-scope="#psyreport-fnlist">Collapse all</button>
+  </div>
+  <div class="fn-list" id="psyreport-fnlist">
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>report(result, style='text')</code></span>
+  <span class="fn-sum">Return an APA-7 formatted string describing a psy result.</span>
+  <span class="fn-r" title="R analogue">report</span>
+</summary>
+<div class="fn-body">
+<p>No further description.</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>to_latex(result, caption=None, label=None)</code></span>
+  <span class="fn-sum">Return a LaTeX table for a result that carries a table.</span>
+  <span class="fn-r" title="R analogue">apaTables</span>
+</summary>
+<div class="fn-body">
+<p>Falls back to a LaTeX comment with the APA sentence for inline-only results (t-test, correlations text, etc.).</p>
+</div>
+</details>
+<details class="fn">
+<summary>
+  <span class="fn-name"><code>to_docx(result, path, caption=None)</code></span>
+  <span class="fn-sum">Write an APA-style .docx with the result's table and note. Returns path.</span>
+  <span class="fn-r" title="R analogue">apaTables</span>
+</summary>
+<div class="fn-body">
+<p>Requires python-docx (imported lazily).</p>
+</div>
+</details>
+  </div>
+
+  <h3 id="psyreport-ex">Examples</h3>
+<p>APA-7 text for a t test and a one-way ANOVA.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import ttest, anova
+from psyreport import report
+
+print(report(ttest(df, dv="bdi_sum", group="sex")))
+print(report(anova(df, dv="bdi_sum", group="country")))</pre></div>
+<div class="code out"><div class="code-label"><span>Output</span></div><pre>t(1540.0) = -2.52, p = .012, d = -.12.
+F(2, 1946) = 8.85, p &lt; .001, η² = .01.</pre></div><p>The same machinery exports a correlation matrix as a LaTeX table.</p><div class="code"><div class="code-label"><span>Python</span><button class="copy" type="button">Copy</button></div><pre>from psystats import corr_matrix
+from psyreport import to_latex
+
+cm = corr_matrix(df, columns=["age", "bdi_sum", "bai_sum"])
+print(to_latex(cm, caption="Correlations among study variables"))</pre></div>
+<div class="code out"><div class="code-label"><span>Output</span></div><pre>\begin{table}[htbp]
+\centering
+\caption{Correlations among study variables}
+\begin{tabular}{llll}
+\toprule
+ &amp; age &amp; bdi\_sum &amp; bai\_sum \\
+\midrule
+age &amp; 1 &amp; -0.02 &amp; -0.04 \\
+bdi\_sum &amp; -0.02 &amp; 1 &amp; 0.60*** \\
+bai\_sum &amp; -0.04 &amp; 0.60*** &amp; 1 \\
+\bottomrule
+\end{tabular}
+\end{table}</pre></div>
+</section>
+
+    <section id="validation">
+      <h2 class="sec">Validation</h2>
+      <p>
+        Estimates are checked against independent references rather than against the
+        packages' own output. Test statistics, confidence intervals, and regression
+        coefficients are compared with <code>scipy</code> and <code>statsmodels</code>,
+        effect sizes with closed form identities, and the fit indices returned by
+        <code>cfa</code> with <code>semopy</code> computed directly on the Holzinger
+        and Swineford data. The suite of 50 tests runs on every push and pull request.
+      </p>
+      <div class="code"><div class="code-label"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre>pytest packages/</pre></div>
+    </section>
+
+    <section id="citing">
+      <h2 class="sec">Citing</h2>
+      <p>
+        Citation metadata is held in <code>CITATION.cff</code>, which GitHub renders as
+        a <em>Cite this repository</em> button in the repository sidebar, giving APA and
+        BibTeX entries directly. Releases are archived on Zenodo, which mints a
+        permanent DOI for each version.
+      </p>
+      <div class="code"><div class="code-label"><span>APA</span></div><pre>Anunciação, L. (2026). ANOVA Methods: psystats, psymetrics, and
+psyreport (Version 0.1.2) [Computer software].
+https://github.com/anovabr/anova-methods</pre></div>
+      <p>
+        The bundled dataset has its own citation, which applies when it is used in a
+        publication.
+      </p>
+      <div class="code"><div class="code-label"><span>APA — dataset</span></div><pre>Afonso Junior, A., Portugal, A. C. de A., Landeira-Fernandez, J.,
+Bullón, F. F., dos Santos, E. J. R., de Vilhena, J., &amp;
+Anunciação, L. (2020). Sintomas de depressão e ansiedade em uma
+amostra representativa de universitários espanhóis, portugueses e
+brasileiros. Psicologia: Teoria e Pesquisa, 36, e36412.
+https://doi.org/10.1590/0102.3772e36412</pre></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>
+      ANOVA Methods is developed in a single repository at
+      <a href="https://github.com/anovabr/anova-methods">github.com/anovabr/anova-methods</a>
+      under the MIT licence. Each package is built and published to PyPI
+      independently. Contribution guidelines are in <code>CONTRIBUTING.md</code>;
+      reports that an estimate disagrees with an established reference are
+      particularly useful.
+    </p>
+    <p style="margin-top:0.75rem;">
+      This page is generated from the installed packages, and the output shown in
+      the examples is produced by running them.
+      Last updated <time datetime="2026-07-25T18:26:10Z">25 July 2026</time>.
+    </p>
+  </footer>
+
+</div>
+<script>
+document.querySelectorAll(".copy").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var block = btn.closest(".code");
+    var pre = block ? block.querySelector("pre") : null;
+    if (!pre) return;
+    navigator.clipboard.writeText(pre.innerText).then(function () {
+      var prev = btn.textContent;
+      btn.textContent = "Copied";
+      setTimeout(function () { btn.textContent = prev; }, 1400);
+    }).catch(function () { btn.textContent = "Press Ctrl+C"; });
+  });
+});
+document.querySelectorAll("[data-expand]").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var open = btn.getAttribute("data-expand") === "all";
+    var scope = document.querySelector(btn.getAttribute("data-scope"));
+    if (!scope) return;
+    scope.querySelectorAll("details.fn").forEach(function (d) { d.open = open; });
+  });
+});
+</script>
+</body>
+</html>
